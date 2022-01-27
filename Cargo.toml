@@ -1,0 +1,14 @@
+[package]
+authors = ["cyqsimon <28627918+cyqsimon@users.noreply.github.com>"]
+description = "Rename files to a randomly generated string."
+edition = "2021"
+keywords = ["random", "rename", "filetool"]
+name = "random-rename"
+version = "0.1.0"
+
+[dependencies]
+clap = {version = "3.0.13", features = ["derive", "unicode"]}
+# itertools = "0.10.3"
+log = "0.4.14"
+simple_logger = "2.1.0"
+# strum = { version = "0.23.0", features = ["derive"] }
