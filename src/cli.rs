@@ -6,6 +6,11 @@ use clap::Parser;
 #[clap(author, version, about)]
 pub struct CliArgs {
     /// Confirm before rename?
+    ///
+    /// Whether to confirm with the user before the rename action is performed.
+    ///
+    /// `none` = "Skip confirmation"; `batch` = "Confirm several at a time";
+    /// `each` = "Confirm each one individually"
     #[clap(
         short = 'c',
         long = "confirm",
@@ -15,33 +20,57 @@ pub struct CliArgs {
     )]
     confirm_mode: ConfirmMode,
 
-    /// How many files to confirm in a batch? Set to 0 to confirm all at once.
+    /// How many files to confirm in a batch? 0 = unlimited.
+    ///
+    /// The number of files to confirm in a batch. Only effective when `confirm = batch`.
+    /// Set to 0 to confirm all at once (be careful if you are processing a large
+    /// number of files).
     #[clap(long = "confirm-batch", value_name = "SIZE", default_value = "10")]
     confirm_batch_size: usize,
 
     /// Discard the file extension.
-    #[clap(short = 'e', long = "no-extensions")]
+    ///
+    /// Do not append the original file extensions when performing the rename.
+    /// Use with care!
+    #[clap(short = 'e', long = "no-ext")]
     no_extension: bool,
 
     /// The number of random characters for each name.
+    ///
+    /// The number of randomly-generated characters to use for each name.
+    /// This does not include the static prefix (if specified with `--prefix`)
+    /// or the file extension.
+    ///
+    /// If the character set & length combination does not have enough permutations
+    /// to cover all input files, the program will take no actions and fail fast.
     #[clap(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
     name_length: usize,
 
     /// Prefix each name with a static string.
-    #[clap(short = 'p', long = "prefix", value_name = "PREFIX")]
+    #[clap(short = 'p', long = "prefix", value_name = "PREFIX", default_value = "")]
     name_prefix: String,
 
     /// What random characters to use?
+    ///
+    /// Set the character set to use for random characters. Use `--case` to set
+    /// upper, lower, or mixed case, if applicable to the character set you chose.
     #[clap(
         short = 's',
         long = "char-set",
         value_name = "SET",
-        possible_values = ["letters", "numbers", "alpha_numeric", "base64", "base64"],
+        possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64"],
         default_value = "base16"
     )]
     char_set: CharSet,
 
     /// Upper case, lower case, or mixed? (if applicable)
+    ///
+    /// Set the character case for the random characters, if applicable to your
+    /// character set of choice.
+    ///
+    /// Support table: `letters` - `upper`, `lower`, `mixed`; `numbers` - N/A;
+    /// `alpha_numeric` - `upper`, `lower`, `mixed`; `base16` - `upper`, `lower`;
+    /// `base64` - None
     #[clap(
         long = "case",
         value_name = "CASE",
@@ -51,7 +80,7 @@ pub struct CliArgs {
     case: Casing,
 
     /// The files to rename.
-    #[clap(required = true)]
+    #[clap(required = true, value_name = "FILES")]
     files: Vec<PathBuf>,
 }
 
