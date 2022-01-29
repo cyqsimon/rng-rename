@@ -18,7 +18,7 @@ pub struct CliArgs {
         possible_values = ["none", "batch", "each"],
         default_value = "batch"
     )]
-    confirm_mode: ConfirmMode,
+    pub confirm_mode: ConfirmMode,
 
     /// How many files to confirm in a batch? 0 = unlimited.
     ///
@@ -26,14 +26,14 @@ pub struct CliArgs {
     /// Set to 0 to confirm all at once (be careful if you are processing a large
     /// number of files).
     #[clap(long = "confirm-batch", value_name = "SIZE", default_value = "10")]
-    confirm_batch_size: usize,
+    pub confirm_batch_size: usize,
 
     /// Discard the file extension.
     ///
     /// Do not append the original file extensions when performing the rename.
     /// Use with care!
     #[clap(short = 'e', long = "no-ext")]
-    no_extension: bool,
+    pub no_extension: bool,
 
     /// The number of random characters for each name.
     ///
@@ -44,16 +44,18 @@ pub struct CliArgs {
     /// If the character set & length combination does not have enough permutations
     /// to cover all input files, the program will take no actions and fail fast.
     #[clap(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
-    name_length: usize,
+    pub name_length: usize,
 
     /// Prefix each name with a static string.
     #[clap(short = 'p', long = "prefix", value_name = "PREFIX", default_value = "")]
-    name_prefix: String,
+    pub name_prefix: String,
 
     /// What random characters to use?
     ///
     /// Set the character set to use for random characters. Use `--case` to set
     /// upper, lower, or mixed case, if applicable to the character set you chose.
+    ///
+    /// `base64` uses base64url encoding (`[A-Za-z0-9-_]`) to be file-name safe.
     #[clap(
         short = 's',
         long = "char-set",
@@ -61,27 +63,28 @@ pub struct CliArgs {
         possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64"],
         default_value = "base16"
     )]
-    char_set: CharSet,
+    pub char_set_selection: CharSetSelection,
 
     /// Upper case, lower case, or mixed? (if applicable)
     ///
     /// Set the character case for the random characters, if applicable to your
-    /// character set of choice.
+    /// character set of choice. If not specified, lower case will be used
+    /// by default where applicable. If the pair specified is invalid, the program
+    /// will take no actions and fail fast.
     ///
     /// Support table: `letters` - `upper`, `lower`, `mixed`; `numbers` - N/A;
     /// `alpha_numeric` - `upper`, `lower`, `mixed`; `base16` - `upper`, `lower`;
-    /// `base64` - None
+    /// `base64` - N/A
     #[clap(
         long = "case",
         value_name = "CASE",
         possible_values = ["upper", "lower", "mixed"],
-        default_value = "lower"
     )]
-    case: Casing,
+    pub case: Option<Casing>,
 
     /// The files to rename.
     #[clap(required = true, value_name = "FILES")]
-    files: Vec<PathBuf>,
+    pub files: Vec<PathBuf>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -104,20 +107,20 @@ impl FromStr for ConfirmMode {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum CharSet {
+pub enum CharSetSelection {
     Letters,
     Numbers,
     AlphaNumeric,
     Base16,
     Base64,
 }
-impl FromStr for CharSet {
+impl FromStr for CharSetSelection {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "letters" => Self::Letters,
-            "number" => Self::Numbers,
+            "numbers" => Self::Numbers,
             "alpha_numeric" => Self::AlphaNumeric,
             "base16" => Self::Base16,
             "base64" => Self::Base64,

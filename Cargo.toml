@@ -8,7 +8,8 @@ version = "0.1.0"
 
 [dependencies]
 clap = {version = "3.0.13", features = ["derive", "unicode"]}
-# itertools = "0.10.3"
+itertools = "0.10.3"
 log = "0.4.14"
+rand = "0.8.4"
 simple_logger = "2.1.0"
 # strum = { version = "0.23.0", features = ["derive"] }
