@@ -35,6 +35,21 @@ pub struct CliArgs {
     #[clap(short = 'e', long = "no-ext")]
     pub no_extension: bool,
 
+    /// How to handle errors?
+    ///
+    /// What to do when an error is encountered (e.g. file does not exist).
+    ///
+    /// `ignore` = "Ignore the error silently and continue"; `warn` = "Prompt the user";
+    /// `fail` = "Fail fast and exit immediately"
+    #[clap(
+        short = 'h',
+        long = "error-handling-mode",
+        value_name = "MODE",
+        possible_values = ["ignore", "warn", "fail"],
+        default_value = "warn"
+    )]
+    pub error_handling_mode: ErrorHandlingMode,
+
     /// The number of random characters for each name.
     ///
     /// The number of randomly-generated characters to use for each name.
@@ -101,6 +116,25 @@ impl FromStr for ConfirmMode {
             "none" => Self::None,
             "batch" => Self::Batch,
             "each" => Self::Each,
+            _ => unreachable!("Invalid values should be caught by clap"),
+        })
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ErrorHandlingMode {
+    Ignore,
+    Warn,
+    Fail,
+}
+impl FromStr for ErrorHandlingMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "ignore" => Self::Ignore,
+            "warn" => Self::Warn,
+            "fail" => Self::Fail,
             _ => unreachable!("Invalid values should be caught by clap"),
         })
     }

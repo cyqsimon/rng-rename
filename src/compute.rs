@@ -46,7 +46,7 @@ impl fmt::Display for NameGenerationError {
 }
 
 /// Generate random names and match them to each file.
-pub fn generate_names<P>(
+pub fn generate_random_names<P>(
     files: &[P],
     chars: CharSet,
     length: usize,
