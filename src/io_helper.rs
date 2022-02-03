@@ -58,7 +58,7 @@ where
                         OnErrorResponse::Halt => Err(DedupError::UserHalt)?,
                     }
                 }
-                (Err(err), ErrorHandlingMode::Fail) => {
+                (Err(err), ErrorHandlingMode::Halt) => {
                     debug!("Error canonicalising path \"{:?}\": {}. Failing.", path.as_ref(), err);
                     Err(err)?;
                 }

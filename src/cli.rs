@@ -40,12 +40,12 @@ pub struct CliArgs {
     /// What to do when an error is encountered (e.g. file does not exist).
     ///
     /// `ignore` = "Ignore the error silently and continue"; `warn` = "Prompt the user";
-    /// `fail` = "Fail fast and exit immediately"
+    /// `halt` = "Fail fast and exit immediately"
     #[clap(
         short = 'h',
         long = "error-handling-mode",
         value_name = "MODE",
-        possible_values = ["ignore", "warn", "fail"],
+        possible_values = ["ignore", "warn", "halt"],
         default_value = "warn"
     )]
     pub error_handling_mode: ErrorHandlingMode,
@@ -125,7 +125,7 @@ impl FromStr for ConfirmMode {
 pub enum ErrorHandlingMode {
     Ignore,
     Warn,
-    Fail,
+    Halt,
 }
 impl FromStr for ErrorHandlingMode {
     type Err = String;
@@ -134,7 +134,7 @@ impl FromStr for ErrorHandlingMode {
         Ok(match s {
             "ignore" => Self::Ignore,
             "warn" => Self::Warn,
-            "fail" => Self::Fail,
+            "halt" => Self::Halt,
             _ => unreachable!("Invalid values should be caught by clap"),
         })
     }
