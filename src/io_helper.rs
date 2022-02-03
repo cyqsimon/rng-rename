@@ -11,11 +11,15 @@ use strum::EnumIter;
 
 use crate::cli::ErrorHandlingMode;
 
+/// Canonicalise all paths, then deduplicate them.
+///
+/// The behaviour when an error is encountered depends on `err_mode`.
 pub fn dedup_paths<P>(files: &[P], err_mode: ErrorHandlingMode) -> Result<Vec<PathBuf>, DedupError>
 where
     P: AsRef<Path>,
 {
     let mut canonicalised = vec![];
+
     for path in files {
         'retry: loop {
             let abs_path_res = path.as_ref().canonicalize();
@@ -38,7 +42,7 @@ where
                         err
                     );
                     let prompt_text = format!(
-                        "\tWhat to do? You can {}({}), {}({}), or {}({}).",
+                        "\tWhat to do with this path? You can {}({}), {}({}), or {}({})",
                         Colour::Green.paint("skip"),
                         Colour::Green.paint("s"),
                         Colour::Green.paint("retry"),
@@ -59,12 +63,13 @@ where
                     }
                 }
                 (Err(err), ErrorHandlingMode::Halt) => {
-                    debug!("Error canonicalising path \"{:?}\": {}. Failing.", path.as_ref(), err);
+                    debug!("Error canonicalising path {:?}: {}. Failing.", path.as_ref(), err);
                     Err(err)?;
                 }
             }
         }
     }
+
     canonicalised.dedup();
     Ok(canonicalised)
 }
@@ -119,7 +124,7 @@ impl FromStr for OnErrorResponse {
             "s" | "skip" => OnErrorResponse::Skip,
             "r" | "retry" => OnErrorResponse::Retry,
             "h" | "halt" => OnErrorResponse::Halt,
-            _ => Err("Invalid response")?,
+            other => Err(format!("\"{}\" is not a valid response", other))?,
         })
     }
 }
