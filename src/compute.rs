@@ -1,4 +1,4 @@
-use std::{collections::HashMap, fmt, iter, path::Path};
+use std::{fmt, iter, path::Path};
 
 use itertools::Itertools;
 use log::info;
@@ -50,7 +50,7 @@ pub fn generate_random_names<P>(
     files: &[P],
     chars: CharSet,
     length: usize,
-) -> Result<HashMap<&Path, String>, NameGenerationError>
+) -> Result<Vec<(&Path, String)>, NameGenerationError>
 where
     P: AsRef<Path>,
 {
@@ -86,7 +86,7 @@ fn generate_on_demand<P>(
     files: &[P],
     chars: CharSet,
     length: usize,
-) -> Result<HashMap<&Path, String>, NameGenerationError>
+) -> Result<Vec<(&Path, String)>, NameGenerationError>
 where
     P: AsRef<Path>,
 {
@@ -94,7 +94,7 @@ where
 
     let mut rng = rand::thread_rng();
 
-    let mut name_map = HashMap::new();
+    let mut name_map = vec![];
     for file in files.iter() {
         // loop until an unused name is found
         let name = loop {
@@ -104,11 +104,11 @@ where
                 name.push(chars[rng.gen_range(0..chars.len())]);
             }
             // check if name is unused
-            if !name_map.values().any(|existing_name| existing_name == &name) {
+            if !name_map.iter().any(|(_, existing_name)| existing_name == &name) {
                 break name;
             }
         };
-        name_map.insert(file.as_ref(), name);
+        name_map.push((file.as_ref(), name));
     }
 
     Ok(name_map)
@@ -122,7 +122,7 @@ fn generate_then_match<P>(
     files: &[P],
     chars: CharSet,
     length: usize,
-) -> Result<HashMap<&Path, String>, NameGenerationError>
+) -> Result<Vec<(&Path, String)>, NameGenerationError>
 where
     P: AsRef<Path>,
 {
@@ -145,11 +145,11 @@ where
 
     let mut rng = rand::thread_rng();
 
-    let mut name_map = HashMap::new();
+    let mut name_map = vec![];
     for file in files.iter() {
         // select random name for each file
         let name = candidates.swap_remove(rng.gen_range(0..candidates.len()));
-        name_map.insert(file.as_ref(), name);
+        name_map.push((file.as_ref(), name));
     }
 
     Ok(name_map)
