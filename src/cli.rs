@@ -2,7 +2,7 @@ use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
 
-#[derive(Debug, Parser)]
+#[derive(Debug, Clone, Parser)]
 #[clap(author, version, about)]
 pub struct CliArgs {
     /// Confirm before rename?

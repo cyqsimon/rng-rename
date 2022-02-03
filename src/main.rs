@@ -7,6 +7,7 @@ use std::process;
 
 use clap::Parser;
 use compute::generate_random_names;
+use log::debug;
 use simple_logger::SimpleLogger;
 
 use crate::{cli::CliArgs, io_helper::dedup_paths};
@@ -24,6 +25,9 @@ fn main() {
 fn main_impl() -> Result<(), String> {
     SimpleLogger::new().init().map_err(|err| err.to_string())?;
 
+    let args = CliArgs::parse();
+    debug!("{:?}", args);
+
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
@@ -34,9 +38,9 @@ fn main_impl() -> Result<(), String> {
         char_set_selection,
         case,
         files,
-    } = CliArgs::parse();
+    } = args;
 
-    let files_unique = dedup_paths(&files, error_handling_mode).map_err(|err| err.to_string())?;
+    let files_unique = dedup_paths(&files, error_handling_mode)?;
 
     let char_set = (char_set_selection, case).try_into()?;
 
