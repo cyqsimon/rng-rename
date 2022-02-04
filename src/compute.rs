@@ -44,6 +44,11 @@ impl fmt::Display for NameGenerationError {
         write!(f, "{}", repr)
     }
 }
+impl From<NameGenerationError> for String {
+    fn from(err: NameGenerationError) -> Self {
+        err.to_string()
+    }
+}
 
 /// Generate random names and match them to each file.
 pub fn generate_random_names<P>(

@@ -44,7 +44,7 @@ fn main_impl() -> Result<(), String> {
 
     let char_set = (char_set_selection, case).try_into()?;
 
-    let pairs = generate_random_names(&files_unique, char_set, name_length).map_err(|err| err.to_string())?;
+    let pairs = generate_random_names(&files_unique, char_set, name_length)?;
     println!("{:#?}", pairs);
 
     Ok(())
