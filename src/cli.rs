@@ -28,12 +28,21 @@ pub struct CliArgs {
     #[clap(long = "confirm-batch", value_name = "SIZE", default_value = "10")]
     pub confirm_batch_size: usize,
 
-    /// Discard the file extension.
+    /// How to handle the original file extension?
     ///
-    /// Do not append the original file extensions when performing the rename.
-    /// Use with care!
-    #[clap(short = 'e', long = "no-ext")]
-    pub no_extension: bool,
+    /// E.g. Original file name: `tarball.tar.xz`
+    ///
+    /// New extension: `keep_all` = `.tar.xz`; `keep_last` = `.xz`; `discard` = None
+    ///
+    /// Use with caution!
+    #[clap(
+        short = 'x',
+        long = "ext-mode",
+        value_name = "MODE",
+        possible_values = ["keep_all", "keep_last", "discard"],
+        default_value = "keep_last"
+    )]
+    pub ext_mode: ExtMode,
 
     /// How to handle errors?
     ///
@@ -42,7 +51,7 @@ pub struct CliArgs {
     /// `ignore` = "Ignore the error silently and continue"; `warn` = "Prompt the user";
     /// `halt` = "Fail fast and exit immediately"
     #[clap(
-        short = 'h',
+        short = 'e',
         long = "error-handling-mode",
         value_name = "MODE",
         possible_values = ["ignore", "warn", "halt"],
@@ -125,6 +134,25 @@ impl FromStr for ConfirmMode {
             "none" => Self::None,
             "batch" => Self::Batch,
             "each" => Self::Each,
+            _ => unreachable!("Invalid values should be caught by clap"),
+        })
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum ExtMode {
+    KeepAll,
+    KeepLast,
+    Discard,
+}
+impl FromStr for ExtMode {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "keep_all" => Self::KeepAll,
+            "keep_last" => Self::KeepLast,
+            "discard" => Self::Discard,
             _ => unreachable!("Invalid values should be caught by clap"),
         })
     }

@@ -2,6 +2,7 @@ mod char_set;
 mod cli;
 mod compute;
 mod io_helper;
+mod util;
 
 use std::process;
 
@@ -9,7 +10,7 @@ use clap::Parser;
 use compute::generate_random_names;
 use log::debug;
 
-use crate::{cli::CliArgs, io_helper::dedup_paths};
+use crate::{cli::CliArgs, compute::finalise_names, io_helper::dedup_paths};
 
 fn main() {
     match main_impl() {
@@ -30,7 +31,7 @@ fn main_impl() -> Result<(), String> {
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
-        no_extension,
+        ext_mode,
         error_handling_mode,
         name_length,
         name_prefix,
@@ -44,8 +45,11 @@ fn main_impl() -> Result<(), String> {
 
     let char_set = (char_set_selection, case).try_into()?;
 
-    let pairs = generate_random_names(&files_unique, char_set, name_length)?;
-    println!("{:#?}", pairs);
+    let random_name_pairs = generate_random_names(&files_unique, char_set, name_length)?;
+
+    let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, ext_mode, error_handling_mode)?;
+
+    println!("{:#?}", finalised_name_pairs);
 
     Ok(())
 }

@@ -1,0 +1,57 @@
+use std::{fmt, io, str::FromStr};
+
+use ansi_term::Colour;
+use dialoguer::Input;
+use strum::EnumIter;
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter)]
+pub enum OnErrorResponse {
+    Skip,
+    Retry,
+    Halt,
+}
+impl fmt::Display for OnErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use OnErrorResponse::*;
+        let repr = match self {
+            Skip => "skip",
+            Retry => "retry",
+            Halt => "halt",
+        };
+        write!(f, "{}", repr)
+    }
+}
+impl FromStr for OnErrorResponse {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s.to_lowercase().as_str() {
+            "s" | "skip" => OnErrorResponse::Skip,
+            "r" | "retry" => OnErrorResponse::Retry,
+            "h" | "halt" => OnErrorResponse::Halt,
+            other => Err(format!("\"{}\" is not a valid response", other))?,
+        })
+    }
+}
+
+pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> io::Result<OnErrorResponse>
+where
+    S: Into<String>,
+{
+    let prompt_text = format!(
+        "\t{} You can {}({}), {}({}), or {}({})",
+        question.into(),
+        Colour::Green.paint("skip"),
+        Colour::Green.paint("s"),
+        Colour::Green.paint("retry"),
+        Colour::Green.paint("r"),
+        Colour::Green.paint("halt"),
+        Colour::Green.paint("h")
+    );
+
+    let mut response = Input::new();
+    if let Some(val) = default {
+        response.default(val);
+    }
+    response.with_prompt(prompt_text).interact()
+}

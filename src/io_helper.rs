@@ -1,15 +1,40 @@
 use std::{
     fmt, io,
     path::{Path, PathBuf},
-    str::FromStr,
 };
 
 use ansi_term::Colour;
-use dialoguer::Input;
 use log::{debug, trace};
-use strum::EnumIter;
 
-use crate::cli::ErrorHandlingMode;
+use crate::{
+    cli::ErrorHandlingMode,
+    util::{error_prompt, OnErrorResponse},
+};
+
+#[derive(Debug)]
+pub enum DedupError {
+    IOError(io::Error),
+    UserHalt,
+}
+impl fmt::Display for DedupError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let repr = match self {
+            DedupError::IOError(err) => err.to_string(),
+            DedupError::UserHalt => "user halt".into(),
+        };
+        write!(f, "Failed during canonicalise & dedup step: {}", repr)
+    }
+}
+impl From<DedupError> for String {
+    fn from(err: DedupError) -> Self {
+        err.to_string()
+    }
+}
+impl From<io::Error> for DedupError {
+    fn from(err: io::Error) -> Self {
+        DedupError::IOError(err)
+    }
+}
 
 /// Canonicalise all paths, then deduplicate them.
 ///
@@ -41,19 +66,7 @@ where
                         Colour::Red.paint(format!("{:?}", path.as_ref())),
                         err
                     );
-                    let prompt_text = format!(
-                        "\tWhat to do with this path? You can {}({}), {}({}), or {}({})",
-                        Colour::Green.paint("skip"),
-                        Colour::Green.paint("s"),
-                        Colour::Green.paint("retry"),
-                        Colour::Green.paint("r"),
-                        Colour::Green.paint("halt"),
-                        Colour::Green.paint("h")
-                    );
-                    let user_response = Input::new()
-                        .with_prompt(prompt_text)
-                        .default(OnErrorResponse::Skip)
-                        .interact_text()?;
+                    let user_response = error_prompt("What to do with this path?", Some(OnErrorResponse::Skip))?;
                     trace!("User selected \"{}\"", user_response);
 
                     match user_response {
@@ -72,59 +85,4 @@ where
 
     canonicalised.dedup();
     Ok(canonicalised)
-}
-
-#[derive(Debug)]
-pub enum DedupError {
-    IOError(io::Error),
-    UserHalt,
-}
-impl fmt::Display for DedupError {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let repr = match self {
-            DedupError::IOError(err) => err.to_string(),
-            DedupError::UserHalt => "user halt".into(),
-        };
-        write!(f, "Failed during canonicalise & dedup step: {}", repr)
-    }
-}
-impl From<DedupError> for String {
-    fn from(err: DedupError) -> Self {
-        err.to_string()
-    }
-}
-impl From<io::Error> for DedupError {
-    fn from(err: io::Error) -> Self {
-        DedupError::IOError(err)
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter)]
-enum OnErrorResponse {
-    Skip,
-    Retry,
-    Halt,
-}
-impl fmt::Display for OnErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use OnErrorResponse::*;
-        let repr = match self {
-            Skip => "skip",
-            Retry => "retry",
-            Halt => "halt",
-        };
-        write!(f, "{}", repr)
-    }
-}
-impl FromStr for OnErrorResponse {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s.to_lowercase().as_str() {
-            "s" | "skip" => OnErrorResponse::Skip,
-            "r" | "retry" => OnErrorResponse::Retry,
-            "h" | "halt" => OnErrorResponse::Halt,
-            other => Err(format!("\"{}\" is not a valid response", other))?,
-        })
-    }
 }
