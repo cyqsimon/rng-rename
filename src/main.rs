@@ -33,6 +33,7 @@ fn main_impl() -> Result<(), String> {
         confirm_batch_size,
         extension_mode,
         error_handling_mode,
+        force_generation_strategy,
         name_length,
         name_prefix,
         char_set_selection,
@@ -45,7 +46,7 @@ fn main_impl() -> Result<(), String> {
 
     let char_set = (char_set_selection, case).try_into()?;
 
-    let random_name_pairs = generate_random_names(&files_unique, char_set, name_length)?;
+    let random_name_pairs = generate_random_names(&files_unique, char_set, name_length, force_generation_strategy)?;
 
     let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, extension_mode, error_handling_mode)?;
 

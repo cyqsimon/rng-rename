@@ -10,7 +10,7 @@ use rand::Rng;
 
 use crate::{
     char_set::CharSet,
-    cli::{ErrorHandlingMode, ExtensionMode},
+    cli::{ErrorHandlingMode, ExtensionMode, NameGenerationStrategy},
     util::{error_prompt, OnErrorResponse},
 };
 
@@ -63,6 +63,7 @@ pub fn generate_random_names<P>(
     files: &[P],
     chars: CharSet,
     length: usize,
+    force_strategy: Option<NameGenerationStrategy>,
 ) -> Result<Vec<(&Path, String)>, NameGenerationError>
 where
     P: AsRef<Path>,
@@ -85,12 +86,24 @@ where
         return Err(NameGenerationError::TooManyFiles { count: files.len() });
     }
 
-    let files_space_ratio = (files.len() as f64) / (naming_spaces_size as f64);
-    trace!("Ratio of files to naming space is {:.2e}.", files_space_ratio);
-    if files_space_ratio < STRATEGY_RATIO_THRESHOLD {
-        generate_on_demand(files, chars, length)
-    } else {
-        generate_then_match(files, chars, length)
+    match force_strategy {
+        Some(NameGenerationStrategy::OnDemand) => {
+            debug!("Forcing \"generate on demand\" strategy.");
+            generate_on_demand(files, chars, length)
+        }
+        Some(NameGenerationStrategy::Match) => {
+            debug!("Forcing \"generate_then_match\" strategy.");
+            generate_then_match(files, chars, length)
+        }
+        None => {
+            let files_space_ratio = (files.len() as f64) / (naming_spaces_size as f64);
+            trace!("Ratio of files to naming space is {:.2e}.", files_space_ratio);
+            if files_space_ratio < STRATEGY_RATIO_THRESHOLD {
+                generate_on_demand(files, chars, length)
+            } else {
+                generate_then_match(files, chars, length)
+            }
+        }
     }
 }
 

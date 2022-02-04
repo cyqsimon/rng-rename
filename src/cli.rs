@@ -59,6 +59,16 @@ pub struct CliArgs {
     )]
     pub error_handling_mode: ErrorHandlingMode,
 
+    /// Do not use unless you know what you're doing.
+    ///
+    /// Force use a specific random name generation strategy. Useful flag for testing performance.
+    #[clap(
+        long = "force-generation-strategy",
+        value_name = "STRAT",
+        possible_values = ["on_demand", "match"]
+    )]
+    pub force_generation_strategy: Option<NameGenerationStrategy>,
+
     /// The number of random characters for each name.
     ///
     /// The number of randomly-generated characters to use for each name.
@@ -172,6 +182,23 @@ impl FromStr for ErrorHandlingMode {
             "ignore" => Self::Ignore,
             "warn" => Self::Warn,
             "halt" => Self::Halt,
+            _ => unreachable!("Invalid values should be caught by clap"),
+        })
+    }
+}
+
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+pub enum NameGenerationStrategy {
+    OnDemand,
+    Match,
+}
+impl FromStr for NameGenerationStrategy {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(match s {
+            "on_demand" => Self::OnDemand,
+            "match" => Self::Match,
             _ => unreachable!("Invalid values should be caught by clap"),
         })
     }
