@@ -49,7 +49,5 @@ fn main_impl() -> Result<(), String> {
 
     let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, ext_mode, error_handling_mode)?;
 
-    println!("{:#?}", finalised_name_pairs);
-
     Ok(())
 }

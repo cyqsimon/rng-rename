@@ -176,7 +176,8 @@ where
         name_map.push((file.as_ref(), name));
     }
 
-    trace!("Generated {} random names.", files.len());
+    debug!("Generated {} random names.", name_map.len());
+    trace!("{:?}", name_map);
     Ok(name_map)
 }
 
@@ -218,12 +219,13 @@ pub fn finalise_names<P, S>(
     err_mode: ErrorHandlingMode,
 ) -> Result<Vec<(P, String)>, NameFinaliseError>
 where
-    P: AsRef<Path>,
+    P: AsRef<Path> + fmt::Debug,
     S: AsRef<str>,
 {
     let mut final_pairs = vec![];
 
     // append original extension
+    trace!("Appending extensions to generated file names.");
     for (path, mut random_name) in file_random_name_pairs {
         'retry: loop {
             let ext_res = match ext_mode {
@@ -304,9 +306,12 @@ where
     }
 
     // append prefix
+    trace!("Appending prefix to generated file names.");
     final_pairs
         .iter_mut()
         .for_each(|(_, name)| *name = format!("{}{}", prefix.as_ref(), name));
 
+    debug!("Finalised names for {} files.", final_pairs.len());
+    trace!("{:?}", final_pairs);
     Ok(final_pairs)
 }
