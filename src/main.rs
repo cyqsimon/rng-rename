@@ -31,13 +31,13 @@ fn main_impl() -> Result<(), String> {
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
-        ext_mode,
+        extension_mode,
         error_handling_mode,
         name_length,
         name_prefix,
         char_set_selection,
         case,
-        verbosity,
+        verbosity: _,
         files,
     } = args;
 
@@ -47,7 +47,7 @@ fn main_impl() -> Result<(), String> {
 
     let random_name_pairs = generate_random_names(&files_unique, char_set, name_length)?;
 
-    let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, ext_mode, error_handling_mode)?;
+    let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, extension_mode, error_handling_mode)?;
 
     Ok(())
 }

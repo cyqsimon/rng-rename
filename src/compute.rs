@@ -10,7 +10,7 @@ use rand::Rng;
 
 use crate::{
     char_set::CharSet,
-    cli::{ErrorHandlingMode, ExtMode},
+    cli::{ErrorHandlingMode, ExtensionMode},
     util::{error_prompt, OnErrorResponse},
 };
 
@@ -215,7 +215,7 @@ impl From<io::Error> for NameFinaliseError {
 pub fn finalise_names<P, S>(
     file_random_name_pairs: Vec<(P, String)>,
     prefix: S,
-    ext_mode: ExtMode,
+    extension_mode: ExtensionMode,
     err_mode: ErrorHandlingMode,
 ) -> Result<Vec<(P, String)>, NameFinaliseError>
 where
@@ -225,11 +225,11 @@ where
     let mut final_pairs = vec![];
 
     // append original extension
-    trace!("Appending extensions to generated file names.");
+    debug!("Appending extensions to generated file names.");
     for (path, mut random_name) in file_random_name_pairs {
         'retry: loop {
-            let ext_res = match ext_mode {
-                ExtMode::KeepAll => {
+            let ext_res = match extension_mode {
+                ExtensionMode::KeepAll => {
                     // TODO: awaiting implementation and stabilisation of `Path::file_suffix`
                     // afterwards this entire match block can be refactored
                     // see https://github.com/rust-lang/rust/issues/86319#issuecomment-996152668
@@ -252,7 +252,7 @@ where
                             name.split_once('.').map(|(_, suffix)| suffix)
                         })
                 }
-                ExtMode::KeepLast => path
+                ExtensionMode::KeepLast => path
                     .as_ref()
                     .extension()
                     .map(|ext| {
@@ -261,7 +261,7 @@ where
                         })
                     })
                     .transpose(),
-                ExtMode::Discard => Ok(None),
+                ExtensionMode::Discard => Ok(None),
             };
             match (ext_res, err_mode) {
                 (Ok(ext), _) => {

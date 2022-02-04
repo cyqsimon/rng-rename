@@ -42,7 +42,7 @@ pub struct CliArgs {
         possible_values = ["keep_all", "keep_last", "discard"],
         default_value = "keep_last"
     )]
-    pub ext_mode: ExtMode,
+    pub extension_mode: ExtensionMode,
 
     /// How to handle errors?
     ///
@@ -140,12 +140,12 @@ impl FromStr for ConfirmMode {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum ExtMode {
+pub enum ExtensionMode {
     KeepAll,
     KeepLast,
     Discard,
 }
-impl FromStr for ExtMode {
+impl FromStr for ExtensionMode {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
