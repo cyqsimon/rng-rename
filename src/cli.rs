@@ -97,6 +97,15 @@ pub struct CliArgs {
     )]
     pub case: Option<Casing>,
 
+    /// Use verbose logging.
+    ///
+    /// Set the verbosity level of logging. This flag can be specified multiple times.
+    ///
+    /// None = "Warn"; Once = "Info"; Twice = "Debug"; Thrice = "Trace"
+
+    #[clap(short = 'v', long = "verbose", parse(from_occurrences = parse_verbosity))]
+    pub verbosity: log::Level,
+
     /// The files to rename.
     #[clap(required = true, value_name = "FILES")]
     pub files: Vec<PathBuf>,
@@ -179,5 +188,15 @@ impl FromStr for Casing {
             "mixed" => Self::Mixed,
             _ => unreachable!("Invalid values should be caught by clap"),
         })
+    }
+}
+
+fn parse_verbosity(occurrences: u64) -> log::Level {
+    use log::Level::*;
+    match occurrences {
+        0 => Warn,
+        1 => Info,
+        2 => Debug,
+        3.. => Trace,
     }
 }
