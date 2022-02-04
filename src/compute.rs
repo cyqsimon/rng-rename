@@ -72,7 +72,7 @@ where
     const STRATEGY_RATIO_THRESHOLD: f64 = 0.1;
 
     trace!("Checking if there are enough permutations.");
-    let naming_spaces_size = chars.len() * length;
+    let naming_spaces_size = chars.len().pow(length as u32);
     if files.len() > naming_spaces_size {
         return Err(NameGenerationError::InsufficientNamingSpace {
             needs: files.len(),
@@ -86,7 +86,7 @@ where
     }
 
     let files_space_ratio = (files.len() as f64) / (naming_spaces_size as f64);
-    trace!("Ratio of files to naming space is {:.3}.", files_space_ratio);
+    trace!("Ratio of files to naming space is {:.2e}.", files_space_ratio);
     if files_space_ratio < STRATEGY_RATIO_THRESHOLD {
         generate_on_demand(files, chars, length)
     } else {
