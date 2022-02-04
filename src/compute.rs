@@ -1,7 +1,7 @@
 use std::{fmt, iter, path::Path};
 
 use itertools::Itertools;
-use log::info;
+use log::{debug, info, trace};
 use rand::Rng;
 
 use crate::char_set::CharSet;
@@ -63,6 +63,7 @@ where
     /// `generate_on_demand` to `generate_then_match`.
     const STRATEGY_RATIO_THRESHOLD: f64 = 0.1;
 
+    trace!("Checking if there are enough permutations.");
     let naming_spaces_size = chars.len() * length;
     if files.len() > naming_spaces_size {
         return Err(NameGenerationError::InsufficientNamingSpace {
@@ -71,11 +72,13 @@ where
         });
     }
 
+    trace!("Checking the number of files does not exceed the maximum.");
     if files.len() > FILE_COUNT_MAX {
         return Err(NameGenerationError::TooManyFiles { count: files.len() });
     }
 
     let files_space_ratio = (files.len() as f64) / (naming_spaces_size as f64);
+    trace!("Ratio of files to naming space is {:.3}.", files_space_ratio);
     if files_space_ratio < STRATEGY_RATIO_THRESHOLD {
         generate_on_demand(files, chars, length)
     } else {
@@ -100,6 +103,7 @@ where
     let mut rng = rand::thread_rng();
 
     let mut name_map = vec![];
+    trace!("Generating names for every file.");
     for file in files.iter() {
         // loop until an unused name is found
         let name = loop {
@@ -108,14 +112,17 @@ where
             for _ in 0..length {
                 name.push(chars[rng.gen_range(0..chars.len())]);
             }
-            // check if name is unused
-            if !name_map.iter().any(|(_, existing_name)| existing_name == &name) {
+            // check if name is used
+            if name_map.iter().any(|(_, existing_name)| existing_name == &name) {
+                debug!("Random name conflict: \"{}\". Retrying.", name);
+            } else {
                 break name;
             }
         };
         name_map.push((file.as_ref(), name));
     }
 
+    trace!("Generated {} random names.", files.len());
     Ok(name_map)
 }
 
@@ -133,6 +140,8 @@ where
 {
     info!("Using \"Generate then match\" strategy.");
 
+    // check if the number of permutations is too large
+    trace!("Checking if the number of permutations is too large.");
     let permutation_count = chars.len().checked_pow(length as u32);
     if !matches!(permutation_count, Some(0..=PERMUTATION_COUNT_MAX)) {
         return Err(NameGenerationError::TooManyPermutations {
@@ -142,6 +151,7 @@ where
     }
 
     // generate all possible names
+    trace!("Generating all possible permutations.");
     let mut candidates = iter::repeat(chars.get_char_set())
         .take(length)
         .multi_cartesian_product()
@@ -151,11 +161,13 @@ where
     let mut rng = rand::thread_rng();
 
     let mut name_map = vec![];
+    trace!("Randomly matching files to generated names.");
     for file in files.iter() {
         // select random name for each file
         let name = candidates.swap_remove(rng.gen_range(0..candidates.len()));
         name_map.push((file.as_ref(), name));
     }
 
+    trace!("Generated {} random names.", files.len());
     Ok(name_map)
 }
