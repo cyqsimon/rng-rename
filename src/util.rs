@@ -25,10 +25,11 @@ impl FromStr for OnErrorResponse {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use OnErrorResponse::*;
         Ok(match s.to_lowercase().as_str() {
-            "s" | "skip" => OnErrorResponse::Skip,
-            "r" | "retry" => OnErrorResponse::Retry,
-            "h" | "halt" => OnErrorResponse::Halt,
+            "s" | "skip" => Skip,
+            "r" | "retry" => Retry,
+            "h" | "halt" => Halt,
             other => Err(format!("\"{}\" is not a valid response", other))?,
         })
     }
@@ -38,15 +39,16 @@ pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> io::Res
 where
     S: Into<String>,
 {
+    use Colour::Green;
     let prompt_text = format!(
         "\t{} You can {}({}), {}({}), or {}({})",
         question.into(),
-        Colour::Green.paint("skip"),
-        Colour::Green.paint("s"),
-        Colour::Green.paint("retry"),
-        Colour::Green.paint("r"),
-        Colour::Green.paint("halt"),
-        Colour::Green.paint("h")
+        Green.paint("skip"),
+        Green.paint("s"),
+        Green.paint("retry"),
+        Green.paint("r"),
+        Green.paint("halt"),
+        Green.paint("h")
     );
 
     let mut response = Input::new();

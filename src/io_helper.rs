@@ -19,8 +19,8 @@ pub enum DedupError {
 impl fmt::Display for DedupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
-            DedupError::IOError(err) => err.to_string(),
-            DedupError::UserHalt => "user halt".into(),
+            Self::IOError(err) => err.to_string(),
+            Self::UserHalt => "user halt".into(),
         };
         write!(f, "Failed during canonicalise & dedup step: {}", repr)
     }
@@ -32,7 +32,7 @@ impl From<DedupError> for String {
 }
 impl From<io::Error> for DedupError {
     fn from(err: io::Error) -> Self {
-        DedupError::IOError(err)
+        Self::IOError(err)
     }
 }
 
