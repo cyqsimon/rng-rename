@@ -15,9 +15,9 @@ use crate::{
 };
 
 /// The hard-coded limit for the number of files that can be processed at once.
-const FILE_COUNT_MAX: usize = 2usize.pow(24);
+const FILE_COUNT_MAX: usize = 2usize.pow(20);
 /// The hard-coded limit for the number of permutations that can be generated first.
-const PERMUTATION_COUNT_MAX: usize = 2usize.pow(28);
+const PERMUTATION_COUNT_MAX: usize = 2usize.pow(24);
 
 #[derive(Debug, Clone)]
 pub enum NameGenerationError {
