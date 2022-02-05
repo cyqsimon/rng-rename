@@ -1,8 +1,13 @@
+use core::fmt;
 use std::{path::PathBuf, str::FromStr};
 
 use clap::Parser;
+// `use derivative::Derivative;` causes rust-analyzer to freak out
+// see https://github.com/rust-analyzer/rust-analyzer/issues/7459#issuecomment-907714513
+use derivative::*;
 
-#[derive(Debug, Clone, Parser)]
+#[derive(Derivative, Clone, Parser)]
+#[derivative(Debug)]
 #[clap(author, version, about)]
 pub struct CliArgs {
     /// Confirm before rename?
@@ -126,6 +131,7 @@ pub struct CliArgs {
     pub verbosity: log::Level,
 
     /// The files to rename.
+    #[derivative(Debug(format_with = "debug_vec_omit"))]
     #[clap(required = true, value_name = "FILES")]
     pub files: Vec<PathBuf>,
 }
@@ -253,5 +259,18 @@ fn parse_verbosity(occurrences: u64) -> log::Level {
         1 => Info,
         2 => Debug,
         3.. => Trace,
+    }
+}
+
+fn debug_vec_omit<T>(v: &Vec<T>, f: &mut fmt::Formatter) -> Result<(), fmt::Error>
+where
+    T: fmt::Debug,
+{
+    use fmt::Debug;
+    use log::LevelFilter::*;
+
+    match log::max_level() {
+        Off | Error | Warn | Info | Debug => write!(f, "/* omitted */"),
+        Trace => v.fmt(f),
     }
 }
