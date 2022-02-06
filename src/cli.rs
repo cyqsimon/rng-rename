@@ -1,5 +1,5 @@
 use core::fmt;
-use std::{path::PathBuf, str::FromStr};
+use std::{num::ParseIntError, path::PathBuf, str::FromStr};
 
 use clap::Parser;
 // `use derivative::Derivative;` causes rust-analyzer to freak out
@@ -28,9 +28,14 @@ pub struct CliArgs {
     /// How many files to confirm in a batch? 0 = unlimited.
     ///
     /// The number of files to confirm in a batch. Only effective when `confirm = batch`.
-    /// Set to 0 to confirm all at once (be careful if you are processing a large
+    /// Set to 0 to confirm all at once (may be undesirable if you are processing a large
     /// number of files).
-    #[clap(long = "confirm-batch", value_name = "SIZE", default_value = "10")]
+    #[clap(
+        long = "confirm-batch",
+        value_name = "SIZE",
+        default_value = "10",
+        parse(try_from_str = parse_batch_size)
+    )]
     pub confirm_batch_size: usize,
 
     /// How to handle the original file extension?
@@ -250,6 +255,15 @@ impl FromStr for Casing {
             _ => unreachable!("Invalid values should be caught by clap"),
         })
     }
+}
+
+/// Map input of `0` to `MAX`, as specified in the docs.
+fn parse_batch_size(s: &str) -> Result<usize, ParseIntError> {
+    let raw: usize = s.parse()?;
+    Ok(match raw {
+        0 => usize::MAX,
+        other => other,
+    })
 }
 
 fn parse_verbosity(occurrences: u64) -> log::Level {
