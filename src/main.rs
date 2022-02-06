@@ -10,7 +10,11 @@ use clap::Parser;
 use compute::generate_random_names;
 use log::debug;
 
-use crate::{cli::CliArgs, compute::finalise_names, io_helper::dedup_paths};
+use crate::{
+    cli::CliArgs,
+    compute::finalise_names,
+    io_helper::{dedup_paths, rename_files},
+};
 
 fn main() {
     match main_impl() {
@@ -27,7 +31,7 @@ fn main_impl() -> Result<(), String> {
     simple_logger::init_with_level(args.verbosity).map_err(|err| err.to_string())?;
     debug!("{:?}", args);
 
-    #[allow(unused)] // TEMP
+    // #[allow(unused)] // TEMP
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
@@ -49,6 +53,13 @@ fn main_impl() -> Result<(), String> {
     let random_name_pairs = generate_random_names(&files_unique, char_set, name_length, force_generation_strategy)?;
 
     let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, extension_mode, error_handling_mode)?;
+
+    rename_files(
+        &finalised_name_pairs,
+        confirm_mode,
+        confirm_batch_size,
+        error_handling_mode,
+    )?;
 
     Ok(())
 }
