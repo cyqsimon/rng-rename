@@ -3,7 +3,7 @@ authors = ["cyqsimon <28627918+cyqsimon@users.noreply.github.com>"]
 description = "Rename files to randomly generated strings."
 edition = "2021"
 keywords = ["random", "rename", "filetool"]
-name = "random-rename"
+name = "rng-rename"
 version = "0.1.0"
 
 [dependencies]
