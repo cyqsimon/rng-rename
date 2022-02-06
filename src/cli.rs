@@ -84,6 +84,7 @@ pub struct CliArgs {
     )]
     pub force_generation_strategy: Option<NameGenerationStrategy>,
 
+    // TODO: add note on postfix
     /// The number of random characters for each name.
     ///
     /// The number of randomly-generated characters to use for each name.
