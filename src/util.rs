@@ -40,7 +40,7 @@ where
 {
     use Colour::Green;
     let prompt_text = format!(
-        "\t{} You can {}({}), {}({}), or {}({})",
+        "{} You can {}({}), {}({}), or {}({})",
         question.into(),
         Green.paint("skip"),
         Green.paint("s"),
