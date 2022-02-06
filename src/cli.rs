@@ -42,6 +42,7 @@ pub struct CliArgs {
     #[clap(short = 'd', long = "dry-run")]
     pub dry_run: bool,
 
+    // TODO: add static extension mode
     /// How to handle the original file extension?
     ///
     /// E.g. Original file name: `tarball.tar.xz`
@@ -94,6 +95,8 @@ pub struct CliArgs {
     #[clap(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
     pub name_length: usize,
 
+    // TODO: filter illegal chars
+    // TODO: add suffix arg
     /// Prefix each name with a static string.
     #[clap(short = 'p', long = "prefix", value_name = "PREFIX")]
     pub name_prefix: Option<String>,
