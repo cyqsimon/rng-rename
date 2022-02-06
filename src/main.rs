@@ -71,8 +71,13 @@ fn main_impl() -> Result<(), String> {
     )?;
 
     println!(
-        "Renamed {} files. Done.",
-        Colour::Green.paint(success_count.to_string())
+        "Renamed {} files{}. Done.",
+        Colour::Green.paint(success_count.to_string()),
+        if dry_run {
+            format!(" ({})", Colour::Yellow.paint("DRY RUN"))
+        } else {
+            "".into()
+        }
     );
 
     Ok(())

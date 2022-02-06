@@ -1,5 +1,5 @@
 use std::{
-    fmt, io,
+    fmt, fs, io,
     path::{Path, PathBuf},
     str::FromStr,
 };
@@ -153,7 +153,7 @@ where
         let path = path.as_ref();
         let new_name = new_name.as_ref();
         'retry: loop {
-            let rename_res = try_rename(path, new_name, dry_run, err_mode);
+            let rename_res = do_rename(path, new_name, dry_run);
             match (rename_res, err_mode) {
                 (Ok(_), _) => {
                     trace!("Rename from {:?} to {} successful.", path, new_name);
@@ -291,7 +291,7 @@ where
             let path = path.as_ref();
             let new_name = new_name.as_ref();
             'retry: loop {
-                let rename_res = try_rename(path, new_name, dry_run, err_mode);
+                let rename_res = do_rename(path, new_name, dry_run);
                 match (rename_res, err_mode) {
                     (Ok(_), _) => {
                         trace!("Rename from {:?} to {} successful.", path, new_name);
@@ -332,24 +332,39 @@ where
     Ok(success_count)
 }
 
-fn try_rename(path: &Path, new_name: &str, dry_run: bool, err_mode: ErrorHandlingMode) -> io::Result<()> {
+fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
+    trace!("Renaming {:?} to {}. Dry run: {}.", path, new_name, dry_run);
+
+    let new_abs_path = {
+        let mut new_path = path
+            .parent()
+            .expect("paths should point to files at this point")
+            .to_owned();
+        new_path.push(new_name);
+        new_path
+    };
+
+    // TODO: use `Path::try_exists` instead after stabilisation
+    // see https://github.com/rust-lang/rust/issues/83186
+    if new_abs_path.exists() {
+        Err(io::Error::new(
+            io::ErrorKind::AlreadyExists,
+            format!(
+                "renaming {:?} to {:?} will overwrite an existing file",
+                path, new_abs_path
+            ),
+        ))?;
+    }
+
     if dry_run {
         println!(
             "Rename preview: {} -> {}",
             Colour::Yellow.paint(format!("{:?}", path)),
-            Colour::Green.paint(format!("\"{}\"", new_name))
+            Colour::Green.paint(format!("{:?}", new_abs_path)),
         );
     } else {
-        todo!()
-        // 'retry: loop {
-        //     let rename_res: Result<(), ()> = Ok(todo!());
-        //     match (rename_res, err_mode) {
-        //         (Ok(_), _) => trace!("Renamed {:?} to {}", path, new_name),
-        //         (Err(err), ErrorHandlingMode::Ignore) => todo!(),
-        //         (Err(err), ErrorHandlingMode::Warn) => todo!(),
-        //         (Err(err), ErrorHandlingMode::Halt) => todo!(),
-        //     }
-        // }
+        trace!("New full path is {:?}", new_abs_path);
+        fs::rename(path, new_abs_path)?;
     }
 
     Ok(())
