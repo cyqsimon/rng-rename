@@ -2,9 +2,8 @@ use std::{fmt, io, str::FromStr};
 
 use ansi_term::Colour;
 use dialoguer::Input;
-use strum::EnumIter;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, EnumIter)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum OnErrorResponse {
     Skip,
     Retry,
