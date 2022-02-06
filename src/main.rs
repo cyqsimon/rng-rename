@@ -6,6 +6,7 @@ mod util;
 
 use std::process;
 
+use ansi_term::Colour;
 use clap::Parser;
 use compute::generate_random_names;
 use log::debug;
@@ -31,7 +32,6 @@ fn main_impl() -> Result<(), String> {
     simple_logger::init_with_level(args.verbosity).map_err(|err| err.to_string())?;
     debug!("{:?}", args);
 
-    // #[allow(unused)] // TEMP
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
@@ -54,12 +54,17 @@ fn main_impl() -> Result<(), String> {
 
     let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, extension_mode, error_handling_mode)?;
 
-    rename_files(
+    let success_count = rename_files(
         &finalised_name_pairs,
         confirm_mode,
         confirm_batch_size,
         error_handling_mode,
     )?;
+
+    println!(
+        "Renamed {} files. Done.",
+        Colour::Green.paint(success_count.to_string())
+    );
 
     Ok(())
 }

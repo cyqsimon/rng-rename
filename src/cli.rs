@@ -91,8 +91,8 @@ pub struct CliArgs {
     pub name_length: usize,
 
     /// Prefix each name with a static string.
-    #[clap(short = 'p', long = "prefix", value_name = "PREFIX", default_value = "")]
-    pub name_prefix: String,
+    #[clap(short = 'p', long = "prefix", value_name = "PREFIX")]
+    pub name_prefix: Option<String>,
 
     /// What random characters to use?
     ///

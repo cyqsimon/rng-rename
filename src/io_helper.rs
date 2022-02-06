@@ -53,7 +53,7 @@ where
             let abs_path_res = path.as_ref().canonicalize();
             match (abs_path_res, err_mode) {
                 (Ok(abs_path), _) => {
-                    trace!("Canonicalised path {:?} into {:?}.", path.as_ref(), abs_path);
+                    trace!("Canonicalised {:?} into {:?}.", path.as_ref(), abs_path);
                     canonicalised.push(abs_path);
                     break 'retry;
                 }
@@ -116,6 +116,7 @@ impl From<io::Error> for RenameError {
 }
 
 /// Perform the rename using the provided `path`-`new name` pairs.
+/// Returns the number of successfully renamed files.
 ///
 /// The behaviour when an error is encountered depends on `err_mode`.
 pub fn rename_files<P, S>(
@@ -123,7 +124,7 @@ pub fn rename_files<P, S>(
     confirm_mode: ConfirmMode,
     confirm_batch_size: usize,
     err_mode: ErrorHandlingMode,
-) -> Result<(), RenameError>
+) -> Result<usize, RenameError>
 where
     P: AsRef<Path>,
     S: AsRef<str>,
@@ -135,7 +136,7 @@ where
     }
 }
 
-fn rename_files_no_confirm<P, S>(pairs_list: &[(P, S)], err_mode: ErrorHandlingMode) -> Result<(), RenameError>
+fn rename_files_no_confirm<P, S>(pairs_list: &[(P, S)], err_mode: ErrorHandlingMode) -> Result<usize, RenameError>
 where
     P: AsRef<Path>,
     S: AsRef<str>,
@@ -184,7 +185,7 @@ where
     }
 
     info!("Successfully renamed {} files", success_count);
-    Ok(())
+    Ok(success_count)
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
@@ -222,7 +223,7 @@ fn rename_files_confirm<P, S>(
     pairs_list: &[(P, S)],
     batch_size: usize,
     err_mode: ErrorHandlingMode,
-) -> Result<(), RenameError>
+) -> Result<usize, RenameError>
 where
     P: AsRef<Path>,
     S: AsRef<str>,
@@ -317,7 +318,7 @@ where
     }
 
     info!("Successfully renamed {} files", success_count);
-    Ok(())
+    Ok(success_count)
 }
 
 fn try_rename(path: &Path, new_name: &str, err_mode: ErrorHandlingMode) -> io::Result<()> {
