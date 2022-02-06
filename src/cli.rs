@@ -38,6 +38,10 @@ pub struct CliArgs {
     )]
     pub confirm_batch_size: usize,
 
+    /// Preview what will happen without actually performing the rename.
+    #[clap(short = 'd', long = "dry-run")]
+    pub dry_run: bool,
+
     /// How to handle the original file extension?
     ///
     /// E.g. Original file name: `tarball.tar.xz`

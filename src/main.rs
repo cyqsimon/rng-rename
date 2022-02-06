@@ -35,6 +35,7 @@ fn main_impl() -> Result<(), String> {
     let CliArgs {
         confirm_mode,
         confirm_batch_size,
+        dry_run,
         extension_mode,
         error_handling_mode,
         force_generation_strategy,
@@ -46,6 +47,13 @@ fn main_impl() -> Result<(), String> {
         files,
     } = args;
 
+    if dry_run {
+        println!(
+            "You are in {}. Your files will not be touched.",
+            Colour::Yellow.paint("DRY RUN MODE")
+        );
+    }
+
     let files_unique = dedup_paths(&files, error_handling_mode)?;
 
     let char_set = (char_set_selection, case).try_into()?;
@@ -56,6 +64,7 @@ fn main_impl() -> Result<(), String> {
 
     let success_count = rename_files(
         &finalised_name_pairs,
+        dry_run,
         confirm_mode,
         confirm_batch_size,
         error_handling_mode,

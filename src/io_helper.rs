@@ -121,6 +121,7 @@ impl From<io::Error> for RenameError {
 /// The behaviour when an error is encountered depends on `err_mode`.
 pub fn rename_files<P, S>(
     pairs_list: &[(P, S)],
+    dry_run: bool,
     confirm_mode: ConfirmMode,
     confirm_batch_size: usize,
     err_mode: ErrorHandlingMode,
@@ -130,13 +131,17 @@ where
     S: AsRef<str>,
 {
     match confirm_mode {
-        ConfirmMode::None => rename_files_no_confirm(pairs_list, err_mode),
-        ConfirmMode::Batch => rename_files_confirm(pairs_list, confirm_batch_size, err_mode),
-        ConfirmMode::Each => rename_files_confirm(pairs_list, 1, err_mode),
+        ConfirmMode::None => rename_files_no_confirm(pairs_list, dry_run, err_mode),
+        ConfirmMode::Batch => rename_files_confirm(pairs_list, dry_run, confirm_batch_size, err_mode),
+        ConfirmMode::Each => rename_files_confirm(pairs_list, dry_run, 1, err_mode),
     }
 }
 
-fn rename_files_no_confirm<P, S>(pairs_list: &[(P, S)], err_mode: ErrorHandlingMode) -> Result<usize, RenameError>
+fn rename_files_no_confirm<P, S>(
+    pairs_list: &[(P, S)],
+    dry_run: bool,
+    err_mode: ErrorHandlingMode,
+) -> Result<usize, RenameError>
 where
     P: AsRef<Path>,
     S: AsRef<str>,
@@ -148,7 +153,7 @@ where
         let path = path.as_ref();
         let new_name = new_name.as_ref();
         'retry: loop {
-            let rename_res = try_rename(path, new_name, err_mode);
+            let rename_res = try_rename(path, new_name, dry_run, err_mode);
             match (rename_res, err_mode) {
                 (Ok(_), _) => {
                     trace!("Rename from {:?} to {} successful.", path, new_name);
@@ -221,6 +226,7 @@ impl FromStr for BatchConfirmResponse {
 
 fn rename_files_confirm<P, S>(
     pairs_list: &[(P, S)],
+    dry_run: bool,
     batch_size: usize,
     err_mode: ErrorHandlingMode,
 ) -> Result<usize, RenameError>
@@ -237,9 +243,14 @@ where
 
         // confirm batch
         println!(
-            "Batch {}/{}:",
+            "Batch {}/{}{}:",
             Colour::Yellow.paint(format!("#{}", batch_idx + 1)),
-            Colour::Green.paint(batch_count.to_string())
+            Colour::Green.paint(batch_count.to_string()),
+            if dry_run {
+                format!(" ({})", Colour::Yellow.paint("DRY RUN"))
+            } else {
+                "".into()
+            }
         );
         let batch_info_text = batch
             .iter()
@@ -280,7 +291,7 @@ where
             let path = path.as_ref();
             let new_name = new_name.as_ref();
             'retry: loop {
-                let rename_res = try_rename(path, new_name, err_mode);
+                let rename_res = try_rename(path, new_name, dry_run, err_mode);
                 match (rename_res, err_mode) {
                     (Ok(_), _) => {
                         trace!("Rename from {:?} to {} successful.", path, new_name);
@@ -321,20 +332,25 @@ where
     Ok(success_count)
 }
 
-fn try_rename(path: &Path, new_name: &str, err_mode: ErrorHandlingMode) -> io::Result<()> {
-    // TEMP
-    println!("Path: {:?}, Name: {}, Mode: {:?}", path, new_name, err_mode);
-
-    // TODO
-    // 'retry: loop {
-    //     let rename_res: Result<(), ()> = Ok(todo!());
-    //     match (rename_res, err_mode) {
-    //         (Ok(_), _) => trace!("Renamed {:?} to {}", path, new_name),
-    //         (Err(err), ErrorHandlingMode::Ignore) => todo!(),
-    //         (Err(err), ErrorHandlingMode::Warn) => todo!(),
-    //         (Err(err), ErrorHandlingMode::Halt) => todo!(),
-    //     }
-    // }
+fn try_rename(path: &Path, new_name: &str, dry_run: bool, err_mode: ErrorHandlingMode) -> io::Result<()> {
+    if dry_run {
+        println!(
+            "Rename preview: {} -> {}",
+            Colour::Yellow.paint(format!("{:?}", path)),
+            Colour::Green.paint(format!("\"{}\"", new_name))
+        );
+    } else {
+        todo!()
+        // 'retry: loop {
+        //     let rename_res: Result<(), ()> = Ok(todo!());
+        //     match (rename_res, err_mode) {
+        //         (Ok(_), _) => trace!("Renamed {:?} to {}", path, new_name),
+        //         (Err(err), ErrorHandlingMode::Ignore) => todo!(),
+        //         (Err(err), ErrorHandlingMode::Warn) => todo!(),
+        //         (Err(err), ErrorHandlingMode::Halt) => todo!(),
+        //     }
+        // }
+    }
 
     Ok(())
 }
