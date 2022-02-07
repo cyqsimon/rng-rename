@@ -223,28 +223,34 @@ impl From<io::Error> for NameFinaliseError {
     }
 }
 
-/// Append the original file extension and the prefix to the new names.
+/// Append prefix, suffix, and file extension to the new names,
+/// then sanitise the combined names.
 ///
 /// The behaviour when an error is encountered depends on `err_mode`.
-pub fn finalise_names<P, S>(
+pub fn finalise_names<P, S1, S2>(
     file_random_name_pairs: Vec<(P, String)>,
-    prefix: Option<S>,
+    prefix: Option<S1>,
+    suffix: Option<S2>,
     extension_mode: ExtensionMode,
     err_mode: ErrorHandlingMode,
 ) -> Result<Vec<(P, String)>, NameFinaliseError>
 where
     P: AsRef<Path> + fmt::Debug,
-    S: AsRef<str>,
+    S1: AsRef<str>,
+    S2: AsRef<str>,
 {
-    let mut final_pairs = vec![];
+    let mut pairs_with_ext = vec![];
 
-    // append original extension
+    // append extension
     if let ExtensionMode::Discard = extension_mode {
         trace!("No extensions to append.");
-        final_pairs = file_random_name_pairs;
+        pairs_with_ext = file_random_name_pairs
+            .into_iter()
+            .map(|(path, random_name)| (path, random_name, None))
+            .collect();
     } else {
         debug!("Appending extensions to generated file names.");
-        for (path, mut random_name) in file_random_name_pairs {
+        for (path, random_name) in file_random_name_pairs {
             'retry: loop {
                 let ext_res = match extension_mode {
                     ExtensionMode::KeepAll => {
@@ -267,16 +273,18 @@ where
                                 if name.starts_with('.') {
                                     name = &name[1..];
                                 }
-                                name.split_once('.').map(|(_, suffix)| suffix)
+                                name.split_once('.').map(|(_, after)| after.to_owned())
                             })
                     }
                     ExtensionMode::KeepLast => path
                         .as_ref()
                         .extension()
                         .map(|ext| {
-                            ext.to_str().ok_or_else(|| NameFinaliseError::NotUtf8 {
-                                path: path.as_ref().to_owned(),
-                            })
+                            ext.to_str()
+                                .map(|s| s.to_owned())
+                                .ok_or_else(|| NameFinaliseError::NotUtf8 {
+                                    path: path.as_ref().to_owned(),
+                                })
                         })
                         .transpose(),
                     ExtensionMode::Discard => unreachable!("This case should be guarded against."),
@@ -284,15 +292,7 @@ where
                 match (ext_res, err_mode) {
                     (Ok(ext), _) => {
                         trace!("The new extension for {:?} is {:?}", path.as_ref(), ext);
-                        let new_name_with_ext = match ext {
-                            Some(ext) => {
-                                random_name.push('.');
-                                random_name.push_str(ext);
-                                random_name
-                            }
-                            None => random_name,
-                        };
-                        final_pairs.push((path, new_name_with_ext));
+                        pairs_with_ext.push((path, random_name, ext));
                         break 'retry;
                     }
                     (Err(err), ErrorHandlingMode::Ignore) => {
@@ -327,14 +327,51 @@ where
     // append prefix
     if let Some(prefix_str) = prefix {
         debug!("Appending prefix to generated file names.");
-        final_pairs
+        pairs_with_ext
             .iter_mut()
-            .for_each(|(_, name)| *name = format!("{}{}", prefix_str.as_ref(), name));
+            .for_each(|(_, name, _)| *name = format!("{}{}", prefix_str.as_ref(), name));
     } else {
         trace!("No prefix to append.")
     }
 
-    debug!("Finalised names for {} files.", final_pairs.len());
-    trace!("Pairs: {:?}", final_pairs);
-    Ok(final_pairs)
+    // append suffix
+    if let Some(suffix_str) = suffix {
+        debug!("Appending suffix to generated file names.");
+        pairs_with_ext
+            .iter_mut()
+            .for_each(|(_, name, _)| name.push_str(suffix_str.as_ref()));
+    } else {
+        trace!("No suffix to append.")
+    }
+
+    // combine and sanitise
+    debug!("Combining and sanitising file names.");
+    let finalised_pairs = pairs_with_ext
+        .into_iter()
+        .map(|(path, name, ext)| {
+            let name_combined = if let Some(ext) = ext {
+                format!("{}.{}", name, ext)
+            } else {
+                name
+            };
+
+            use sanitize_filename as sf;
+            let name_sanitised = sf::sanitize_with_options(
+                name_combined,
+                sf::Options {
+                    // if filename is too long, let `fs::rename` handle it
+                    // this way we fail loudly instead of silently instead of
+                    // inadvertently truncating the extension or something
+                    truncate: false,
+                    ..Default::default()
+                },
+            );
+
+            (path, name_sanitised)
+        })
+        .collect_vec();
+
+    debug!("Finalised names for {} files.", finalised_pairs.len());
+    trace!("Pairs: {:?}", finalised_pairs);
+    Ok(finalised_pairs)
 }

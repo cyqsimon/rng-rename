@@ -41,6 +41,7 @@ fn main_impl() -> Result<(), String> {
         force_generation_strategy,
         name_length,
         name_prefix,
+        name_suffix,
         char_set_selection,
         case,
         verbosity: _,
@@ -60,7 +61,13 @@ fn main_impl() -> Result<(), String> {
 
     let random_name_pairs = generate_random_names(&files_unique, char_set, name_length, force_generation_strategy)?;
 
-    let finalised_name_pairs = finalise_names(random_name_pairs, name_prefix, extension_mode, error_handling_mode)?;
+    let finalised_name_pairs = finalise_names(
+        random_name_pairs,
+        name_prefix,
+        name_suffix,
+        extension_mode,
+        error_handling_mode,
+    )?;
 
     let success_count = rename_files(
         &finalised_name_pairs,

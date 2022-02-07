@@ -84,11 +84,10 @@ pub struct CliArgs {
     )]
     pub force_generation_strategy: Option<NameGenerationStrategy>,
 
-    // TODO: add note on postfix
     /// The number of random characters for each name.
     ///
     /// The number of randomly-generated characters to use for each name.
-    /// This does not include the static prefix (if specified with `--prefix`)
+    /// This does not include the static prefix and suffix (if specified)
     /// or the file extension.
     ///
     /// If the character set & length combination does not have enough permutations
@@ -96,11 +95,17 @@ pub struct CliArgs {
     #[clap(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
     pub name_length: usize,
 
-    // TODO: filter illegal chars
-    // TODO: add suffix arg
     /// Prefix each name with a static string.
-    #[clap(short = 'p', long = "prefix", value_name = "PREFIX")]
+    ///
+    /// Any character that's not filename-safe will be removed.
+    #[clap(long = "prefix", value_name = "PREFIX", allow_hyphen_values = true)]
     pub name_prefix: Option<String>,
+
+    /// Suffix each name with a static string (before the extension).
+    ///
+    /// Any character that's not filename-safe will be removed.
+    #[clap(long = "suffix", value_name = "SUFFIX", allow_hyphen_values = true)]
+    pub name_suffix: Option<String>,
 
     /// What random characters to use?
     ///
