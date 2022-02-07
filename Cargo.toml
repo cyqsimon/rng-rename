@@ -1,9 +1,12 @@
 [package]
 authors = ["cyqsimon <28627918+cyqsimon@users.noreply.github.com>"]
+categories = ["command-line-utilities", "filesystem"]
 description = "Rename files to randomly generated strings."
 edition = "2021"
 keywords = ["random", "rename", "filetool"]
+license = "AGPL-3.0-only"
 name = "rng-rename"
+repository = "https://github.com/cyqsimon/rng-rename"
 version = "0.1.0"
 
 [dependencies]
