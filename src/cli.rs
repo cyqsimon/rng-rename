@@ -62,6 +62,8 @@ pub struct CliArgs {
     pub extension_mode_selection: ExtensionModeSelection,
 
     /// The static file extension to use when `--ext-mode=static`, without the leading dot.
+    ///
+    /// Any character that's not filename-safe will be removed.
     #[clap(
         long = "static-ext",
         value_name = "EXT",
