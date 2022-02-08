@@ -36,7 +36,8 @@ fn main_impl() -> Result<(), String> {
         confirm_mode,
         confirm_batch_size,
         dry_run,
-        extension_mode,
+        extension_mode_selection,
+        static_ext,
         error_handling_mode,
         force_generation_strategy,
         name_length,
@@ -58,9 +59,9 @@ fn main_impl() -> Result<(), String> {
     let files_unique = dedup_paths(&files, error_handling_mode)?;
 
     let char_set = (char_set_selection, case).try_into()?;
-
     let random_name_pairs = generate_random_names(&files_unique, char_set, name_length, force_generation_strategy)?;
 
+    let extension_mode = (extension_mode_selection, static_ext).try_into()?;
     let finalised_name_pairs = finalise_names(
         random_name_pairs,
         name_prefix,

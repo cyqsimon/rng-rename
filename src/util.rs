@@ -3,6 +3,30 @@ use std::{fmt, io, str::FromStr};
 use ansi_term::Colour;
 use dialoguer::Input;
 
+use crate::cli::ExtensionModeSelection;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ExtensionMode {
+    KeepAll,
+    KeepLast,
+    Static(String),
+    Discard,
+}
+impl TryFrom<(ExtensionModeSelection, Option<String>)> for ExtensionMode {
+    type Error = String;
+
+    fn try_from(value: (ExtensionModeSelection, Option<String>)) -> Result<Self, Self::Error> {
+        use ExtensionModeSelection::*;
+        Ok(match value {
+            (KeepAll, _) => Self::KeepAll,
+            (KeepLast, _) => Self::KeepLast,
+            (Static, Some(ext)) => Self::Static(ext),
+            (Static, None) => Err("`--static-ext` should be required by clap".to_string())?,
+            (Discard, _) => Self::Discard,
+        })
+    }
+}
+
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum OnErrorResponse {
     Skip,

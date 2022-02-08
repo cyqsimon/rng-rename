@@ -42,22 +42,33 @@ pub struct CliArgs {
     #[clap(short = 'd', long = "dry-run")]
     pub dry_run: bool,
 
-    // TODO: add static extension mode
     /// How to handle the original file extension?
     ///
     /// E.g. Original file name: `tarball.tar.xz`
     ///
-    /// New extension: `keep_all` = `.tar.xz`; `keep_last` = `.xz`; `discard` = None
+    /// New extension: `keep_all` = `tar.xz`; `keep_last` = `xz`;
+    /// `static` = `<STATIC_EXT>`; `discard` = None
+    ///
+    /// For mode `static`, the option `--static-ext` must also be specified.
     ///
     /// Use with caution!
     #[clap(
         short = 'x',
         long = "ext-mode",
         value_name = "MODE",
-        possible_values = ["keep_all", "keep_last", "discard"],
+        possible_values = ["keep_all", "keep_last", "static", "discard"],
         default_value = "keep_last"
     )]
-    pub extension_mode: ExtensionMode,
+    pub extension_mode_selection: ExtensionModeSelection,
+
+    /// The static file extension to use when `--ext-mode=static`, without the leading dot.
+    #[clap(
+        long = "static-ext",
+        value_name = "EXT",
+        allow_hyphen_values = true,
+        required_if_eq("extension-mode-selection", "static")
+    )]
+    pub static_ext: Option<String>,
 
     /// How to handle errors?
     ///
@@ -174,18 +185,20 @@ impl FromStr for ConfirmMode {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
-pub enum ExtensionMode {
+pub enum ExtensionModeSelection {
     KeepAll,
     KeepLast,
+    Static,
     Discard,
 }
-impl FromStr for ExtensionMode {
+impl FromStr for ExtensionModeSelection {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
             "keep_all" => Self::KeepAll,
             "keep_last" => Self::KeepLast,
+            "static" => Self::Static,
             "discard" => Self::Discard,
             _ => unreachable!("Invalid values should be caught by clap"),
         })

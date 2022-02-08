@@ -10,8 +10,8 @@ use rand::Rng;
 
 use crate::{
     char_set::CharSet,
-    cli::{ErrorHandlingMode, ExtensionMode, NameGenerationStrategy},
-    util::{error_prompt, OnErrorResponse},
+    cli::{ErrorHandlingMode, NameGenerationStrategy},
+    util::{error_prompt, ExtensionMode, OnErrorResponse},
 };
 
 /// The hard-coded limit for the number of files that can be processed at once.
@@ -252,7 +252,7 @@ where
         debug!("Appending extensions to generated file names.");
         for (path, random_name) in file_random_name_pairs {
             'retry: loop {
-                let ext_res = match extension_mode {
+                let ext_res = match &extension_mode {
                     ExtensionMode::KeepAll => {
                         // TODO: awaiting implementation and stabilisation of `Path::file_suffix`
                         // afterwards this entire match block can be refactored
@@ -287,6 +287,7 @@ where
                                 })
                         })
                         .transpose(),
+                    ExtensionMode::Static(ext) => Ok(Some(ext.clone())),
                     ExtensionMode::Discard => unreachable!("This case should be guarded against."),
                 };
                 match (ext_res, err_mode) {
