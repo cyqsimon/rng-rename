@@ -111,14 +111,11 @@ where
 /// are resolved on demand by regenerating.
 ///
 /// Use when the naming space is large and the files are few.
-fn generate_on_demand<P>(
-    files: &[P],
+fn generate_on_demand(
+    files: &[impl AsRef<Path>],
     chars: CharSet,
     length: usize,
-) -> Result<Vec<(&Path, String)>, NameGenerationError>
-where
-    P: AsRef<Path>,
-{
+) -> Result<Vec<(&Path, String)>, NameGenerationError> {
     info!("Using \"Generate on demand\" strategy.");
 
     let mut rng = rand::thread_rng();
@@ -152,14 +149,11 @@ where
 ///
 /// Use when the naming space is on the same order of magnitude as
 /// the number of files.
-fn generate_then_match<P>(
-    files: &[P],
+fn generate_then_match(
+    files: &[impl AsRef<Path>],
     chars: CharSet,
     length: usize,
-) -> Result<Vec<(&Path, String)>, NameGenerationError>
-where
-    P: AsRef<Path>,
-{
+) -> Result<Vec<(&Path, String)>, NameGenerationError> {
     info!("Using \"Generate then match\" strategy.");
 
     // check if the number of permutations is too large

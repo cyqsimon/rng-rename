@@ -137,15 +137,11 @@ where
     }
 }
 
-fn rename_files_no_confirm<P, S>(
-    pairs_list: &[(P, S)],
+fn rename_files_no_confirm(
+    pairs_list: &[(impl AsRef<Path>, impl AsRef<str>)],
     dry_run: bool,
     err_mode: ErrorHandlingMode,
-) -> Result<usize, RenameError>
-where
-    P: AsRef<Path>,
-    S: AsRef<str>,
-{
+) -> Result<usize, RenameError> {
     let mut success_count = 0;
 
     debug!("Renaming files without confirmation.");
@@ -224,16 +220,12 @@ impl FromStr for BatchConfirmResponse {
     }
 }
 
-fn rename_files_confirm<P, S>(
-    pairs_list: &[(P, S)],
+fn rename_files_confirm(
+    pairs_list: &[(impl AsRef<Path>, impl AsRef<str>)],
     dry_run: bool,
     batch_size: usize,
     err_mode: ErrorHandlingMode,
-) -> Result<usize, RenameError>
-where
-    P: AsRef<Path>,
-    S: AsRef<str>,
-{
+) -> Result<usize, RenameError> {
     let mut success_count = 0;
 
     debug!("Renaming files with confirmation and batch size of {}.", batch_size);

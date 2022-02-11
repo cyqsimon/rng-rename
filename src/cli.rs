@@ -304,10 +304,7 @@ fn parse_verbosity(occurrences: u64) -> log::Level {
     }
 }
 
-fn debug_vec_omit<T>(v: &Vec<T>, f: &mut fmt::Formatter) -> Result<(), fmt::Error>
-where
-    T: fmt::Debug,
-{
+fn debug_vec_omit(v: &Vec<impl fmt::Debug>, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     use fmt::Debug;
     use log::LevelFilter::*;
 
