@@ -6,6 +6,8 @@ use clap::Parser;
 // see https://github.com/rust-analyzer/rust-analyzer/issues/7459#issuecomment-907714513
 use derivative::*;
 
+use crate::char_set::CustomCharSet;
+
 #[derive(Derivative, Clone, Parser)]
 #[derivative(Debug)]
 #[clap(author, version, about)]
@@ -126,14 +128,30 @@ pub struct CliArgs {
     /// upper, lower, or mixed case, if applicable to the character set you chose.
     ///
     /// `base64` uses base64url encoding (`[A-Za-z0-9-_]`) to be file-name safe.
+    ///
+    /// For mode `custom`, the option `--custom-chars` must also be specified.
     #[clap(
         short = 's',
         long = "char-set",
         value_name = "SET",
-        possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64"],
+        possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64", "custom"],
         default_value = "base16"
     )]
     pub char_set_selection: CharSetSelection,
+
+    /// The character set to use when `--char-set=custom`.
+    ///
+    /// E.g. `--custom-chars=ABCDabcd`
+    ///
+    /// Inclusion of any character that's not filename-safe will cause an error.
+    #[clap(
+        long = "custom-chars",
+        value_name = "CHARS",
+        allow_hyphen_values = true,
+        required_if_eq("char-set-selection", "custom"),
+        parse(try_from_str)
+    )]
+    pub custom_chars: Option<CustomCharSet>,
 
     /// Upper case, lower case, or mixed? (if applicable)
     ///
@@ -142,9 +160,9 @@ pub struct CliArgs {
     /// by default where applicable. If the pair specified is invalid, the program
     /// will take no actions and fail fast.
     ///
-    /// Support table: `letters` - `upper`, `lower`, `mixed`; `numbers` - N/A;
-    /// `alpha_numeric` - `upper`, `lower`, `mixed`; `base16` - `upper`, `lower`;
-    /// `base64` - N/A
+    /// Support table: `letters` - `upper|lower|mixed`; `numbers` - N/A;
+    /// `alpha_numeric` - `upper|lower|mixed`; `base16` - `upper|lower`; `base64` - N/A;
+    /// `custom` - N/A.
     #[clap(
         long = "case",
         value_name = "CASE",
@@ -245,6 +263,7 @@ impl FromStr for NameGenerationStrategy {
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum CharSetSelection {
+    Custom,
     Letters,
     Numbers,
     AlphaNumeric,
@@ -256,6 +275,7 @@ impl FromStr for CharSetSelection {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         Ok(match s {
+            "custom" => Self::Custom,
             "letters" => Self::Letters,
             "numbers" => Self::Numbers,
             "alpha_numeric" => Self::AlphaNumeric,

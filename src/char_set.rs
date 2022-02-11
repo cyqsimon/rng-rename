@@ -1,4 +1,6 @@
-use std::{fmt, ops::Index};
+use std::{collections::HashMap, error::Error, fmt, ops::Index, str::FromStr};
+
+use itertools::Itertools;
 
 use crate::cli::{Casing, CharSetSelection};
 
@@ -41,8 +43,82 @@ static BASE_64: [char; 64] = [
     'u', 'v', 'w', 'x', 'y', 'z', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '-', '_',
 ];
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ParseCustomCharSetError {
+    IllegalChars(Vec<char>),
+    DuplicateChars(Vec<char>),
+}
+impl Error for ParseCustomCharSetError {}
+impl fmt::Display for ParseCustomCharSetError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fn chars_to_string(chars: &[char]) -> String {
+            chars.iter().map(|c| format!("\'{}\'", c)).join(", ")
+        }
+
+        use ParseCustomCharSetError::*;
+        let repr = match self {
+            IllegalChars(chars) => format!(
+                "the custom character set contains illegal characters: {}",
+                chars_to_string(&chars)
+            ),
+            DuplicateChars(chars) => format!(
+                "the custom character set contains duplicate characters: {}",
+                chars_to_string(&chars)
+            ),
+        };
+        write!(f, "{}", repr)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct CustomCharSet {
+    chars: Vec<char>,
+}
+impl FromStr for CustomCharSet {
+    type Err = ParseCustomCharSetError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        use sanitize_filename as sf;
+        use ParseCustomCharSetError::*;
+
+        let illegal_chars: Vec<_> = s
+            .chars()
+            .filter(|c| {
+                let c = c.to_string();
+                c != sf::sanitize_with_options(
+                    &c,
+                    sf::Options {
+                        windows: false, // this avoids filtering trailing dot
+                        ..Default::default()
+                    },
+                )
+            })
+            .collect();
+        if !illegal_chars.is_empty() {
+            Err(IllegalChars(illegal_chars))?;
+        }
+
+        let duplicate_chars: Vec<_> = s
+            .chars()
+            .fold(HashMap::<char, usize>::new(), |mut map, c| {
+                *map.entry(c).or_default() += 1;
+                map
+            })
+            .into_iter()
+            .filter_map(|(c, count)| (count > 1).then(|| c))
+            .collect();
+        if !duplicate_chars.is_empty() {
+            Err(DuplicateChars(duplicate_chars))?;
+        }
+
+        let chars = s.chars().collect();
+        Ok(Self { chars })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CharSet {
+    Custom(CustomCharSet),
     LettersLower,
     LettersUpper,
     LettersMixed,
@@ -54,26 +130,35 @@ pub enum CharSet {
     Base16Upper,
     Base64,
 }
-impl TryFrom<(CharSetSelection, Option<Casing>)> for CharSet {
+impl TryFrom<(CharSetSelection, Option<CustomCharSet>, Option<Casing>)> for CharSet {
     type Error = String;
 
-    fn try_from(pair: (CharSetSelection, Option<Casing>)) -> Result<Self, Self::Error> {
+    fn try_from(combination: (CharSetSelection, Option<CustomCharSet>, Option<Casing>)) -> Result<Self, Self::Error> {
         use Casing::*;
         use CharSetSelection::*;
-        match pair {
-            (Letters, None | Some(Lower)) => Ok(Self::LettersLower),
-            (Letters, Some(Upper)) => Ok(Self::LettersUpper),
-            (Letters, Some(Mixed)) => Ok(Self::LettersMixed),
-            (Numbers, None) => Ok(Self::Numbers),
-            (AlphaNumeric, None | Some(Lower)) => Ok(Self::AlphaNumericLower),
-            (AlphaNumeric, Some(Upper)) => Ok(Self::AlphaNumericUpper),
-            (AlphaNumeric, Some(Mixed)) => Ok(Self::AlphaNumericMixed),
-            (Base16, None | Some(Lower)) => Ok(Self::Base16Lower),
-            (Base16, Some(Upper)) => Ok(Self::Base16Upper),
-            (Base64, None) => Ok(Self::Base64),
-            (char_set, Some(case)) => Err(format!(
-                "The pair {{char_set: {:?}, case: {:?}}} is invalid",
-                char_set, case
+        match combination {
+            // when `--char-set=custom`, `--custom-chars` is guaranteed to be set
+            (Custom, None, _) => unreachable!("`--custom-chars` should be required by clap"),
+            // when `--custom-chars` is set, `--char-set=custom` must be true
+            (Letters | Numbers | AlphaNumeric | Base16 | Base64, Some(_), _) => {
+                Err("`--custom-chars` cannot be used unless `--char-set=custom`".to_string())
+            }
+            // valid combinations
+            (Custom, Some(set), None) => Ok(Self::Custom(set)),
+            (Letters, None, None | Some(Lower)) => Ok(Self::LettersLower),
+            (Letters, None, Some(Upper)) => Ok(Self::LettersUpper),
+            (Letters, None, Some(Mixed)) => Ok(Self::LettersMixed),
+            (Numbers, None, None) => Ok(Self::Numbers),
+            (AlphaNumeric, None, None | Some(Lower)) => Ok(Self::AlphaNumericLower),
+            (AlphaNumeric, None, Some(Upper)) => Ok(Self::AlphaNumericUpper),
+            (AlphaNumeric, None, Some(Mixed)) => Ok(Self::AlphaNumericMixed),
+            (Base16, None, None | Some(Lower)) => Ok(Self::Base16Lower),
+            (Base16, None, Some(Upper)) => Ok(Self::Base16Upper),
+            (Base64, None, None) => Ok(Self::Base64),
+            // incompatible `--char-set` and `--case` values
+            (char_set_selection, _, Some(case)) => Err(format!(
+                "the character set {:?} is incompatible with the case {:?}",
+                char_set_selection, case
             )),
         }
     }
@@ -92,6 +177,7 @@ impl fmt::Display for CharSet {
             Base16Lower => "[0-9a-f]",
             Base16Upper => "[0-9A-F]",
             Base64 => "[A-Za-z0-9-_]",
+            Custom(_) => "custom", // TODO: show actual
         };
         write!(f, "{}", repr)
     }
@@ -117,6 +203,7 @@ impl CharSet {
             Base16Lower => &BASE_16_L,
             Base16Upper => &BASE_16_U,
             Base64 => &BASE_64,
+            Custom(set) => &set.chars,
         }
     }
     pub fn len(&self) -> usize {

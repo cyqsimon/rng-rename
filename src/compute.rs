@@ -29,20 +29,20 @@ impl fmt::Display for NameGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use NameGenerationError::*;
         let repr = match self {
-            &InsufficientNamingSpace { needs, space } => {
+            InsufficientNamingSpace { needs, space } => {
                 format!(
                     "This combination of character set and length cannot uniquely cover every file.\n\
                     There are {} files but only {} unique names available.",
                     needs, space
                 )
             }
-            &TooManyFiles { count } => {
+            TooManyFiles { count } => {
                 format!(
                     "Cannot process {} files at once. Currently the limit is {}.",
                     count, FILE_COUNT_MAX
                 )
             }
-            &TooManyPermutations { char_set, length } => {
+            TooManyPermutations { char_set, length } => {
                 format!(
                     "Cannot enumerate all permutations with the character set {} and length {}.",
                     char_set, length

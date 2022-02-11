@@ -44,6 +44,7 @@ fn main_impl() -> Result<(), String> {
         name_prefix,
         name_suffix,
         char_set_selection,
+        custom_chars,
         case,
         verbosity: _,
         files,
@@ -58,7 +59,7 @@ fn main_impl() -> Result<(), String> {
 
     let files_unique = dedup_paths(&files, error_handling_mode)?;
 
-    let char_set = (char_set_selection, case).try_into()?;
+    let char_set = (char_set_selection, custom_chars, case).try_into()?;
     let random_name_pairs = generate_random_names(&files_unique, char_set, name_length, force_generation_strategy)?;
 
     let extension_mode = (extension_mode_selection, static_ext).try_into()?;
