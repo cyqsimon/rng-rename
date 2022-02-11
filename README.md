@@ -30,6 +30,11 @@ Batch #1/1:
 Confirm batch? You can proceed(p), skip(s), or halt(h): proceed
 Renamed 2 files. Done.
 ```
+
+Markdown doesn't show colours, but the real thing does!
+
+![rng-rename on Alacritty](example_alacritty.png)
+
 There are plenty of various options available. You can for example:
  - Preview using the `--dry-run` flag
  - Choose which character set to use for random names using the `--char-set` option
