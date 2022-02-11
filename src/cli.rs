@@ -133,6 +133,7 @@ pub struct CliArgs {
     #[clap(
         short = 's',
         long = "char-set",
+        alias = "charset",
         value_name = "SET",
         possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64", "custom"],
         default_value = "base16"
