@@ -252,44 +252,7 @@ where
         debug!("Appending extensions to generated file names.");
         for (path, random_name) in file_random_name_pairs {
             'retry: loop {
-                let ext_res = match &extension_mode {
-                    ExtensionMode::KeepAll => {
-                        // TODO: awaiting implementation and stabilisation of `Path::file_suffix`
-                        // afterwards this entire match block can be refactored
-                        // see https://github.com/rust-lang/rust/issues/86319#issuecomment-996152668
-                        path.as_ref()
-                            .file_name()
-                            .expect("paths should already be canonicalised")
-                            .to_str()
-                            .ok_or_else(|| NameFinaliseError::NotUtf8 {
-                                path: path.as_ref().to_owned(),
-                            })
-                            .map(|mut name| {
-                                // currently, the rules are:
-                                // - `None`, if there is no file name;
-                                // - `None`, if there is no embedded `.`;
-                                // - `None`, if the file name begins with `.` and has no other `.`s within;
-                                // - Otherwise, the portion of the file name starting with the first non-beginning `.`
-                                if name.starts_with('.') {
-                                    name = &name[1..];
-                                }
-                                name.split_once('.').map(|(_, after)| after.to_owned())
-                            })
-                    }
-                    ExtensionMode::KeepLast => path
-                        .as_ref()
-                        .extension()
-                        .map(|ext| {
-                            ext.to_str()
-                                .map(|s| s.to_owned())
-                                .ok_or_else(|| NameFinaliseError::NotUtf8 {
-                                    path: path.as_ref().to_owned(),
-                                })
-                        })
-                        .transpose(),
-                    ExtensionMode::Static(ext) => Ok(Some(ext.clone())),
-                    ExtensionMode::Discard => unreachable!("This case should be guarded against."),
-                };
+                let ext_res = get_extension(&path, &extension_mode);
                 match (ext_res, err_mode) {
                     (Ok(ext), _) => {
                         trace!("The new extension for {:?} is {:?}", path.as_ref(), ext);
@@ -375,4 +338,47 @@ where
     debug!("Finalised names for {} files.", finalised_pairs.len());
     trace!("Pairs: {:?}", finalised_pairs);
     Ok(finalised_pairs)
+}
+
+fn get_extension(path: impl AsRef<Path>, ext_mode: &ExtensionMode) -> Result<Option<String>, NameFinaliseError> {
+    match ext_mode {
+        ExtensionMode::KeepAll => {
+            // TODO: awaiting implementation and stabilisation of `Path::file_suffix`
+            // afterwards this entire match block can be refactored
+            // see https://github.com/rust-lang/rust/issues/86319#issuecomment-996152668
+            path.as_ref()
+                .file_name()
+                .expect("paths should already be canonicalised")
+                .to_str()
+                .ok_or_else(|| NameFinaliseError::NotUtf8 {
+                    path: path.as_ref().to_owned(),
+                })
+                .map(|mut name| {
+                    // currently, the rules are:
+                    // - `None`, if there is no file name;
+                    // - `None`, if there is no embedded `.`;
+                    // - `None`, if the file name begins with `.` and has no other `.`s within;
+                    // - Otherwise, the portion of the file name starting with the first non-beginning `.`
+                    if name.starts_with('.') {
+                        name = &name[1..];
+                    }
+                    name.split_once('.').map(|(_, after)| after.to_owned())
+                })
+        }
+        ExtensionMode::KeepLast => path
+            .as_ref()
+            .extension()
+            .map(|ext| {
+                ext.to_str()
+                    .map(|s| s.to_owned())
+                    .ok_or_else(|| NameFinaliseError::NotUtf8 {
+                        path: path.as_ref().to_owned(),
+                    })
+            })
+            .transpose(),
+        ExtensionMode::Static(ext) => Ok(Some(ext.clone())),
+        // this case should be unreachable because we already guard against it
+        // but impl is trivial so it's here anyway
+        ExtensionMode::Discard => Ok(None),
+    }
 }
