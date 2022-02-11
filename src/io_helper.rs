@@ -239,7 +239,7 @@ fn rename_files_confirm(
             Colour::Yellow.paint(format!("#{}", batch_idx + 1)),
             Colour::Green.paint(batch_count.to_string()),
             if dry_run {
-                format!(" ({})", Colour::Yellow.paint("DRY RUN"))
+                format!(" ({})", Colour::Red.paint("DRY RUN"))
             } else {
                 "".into()
             }
@@ -350,7 +350,7 @@ fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
 
     if dry_run {
         println!(
-            "Rename preview: {} -> {}",
+            "\tRename preview: {} -> {}",
             Colour::Yellow.paint(format!("{:?}", path)),
             Colour::Green.paint(format!("{:?}", new_abs_path)),
         );

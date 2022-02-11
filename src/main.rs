@@ -53,7 +53,7 @@ fn main_impl() -> Result<(), String> {
     if dry_run {
         println!(
             "You are in {}. Your files will not be touched.",
-            Colour::Yellow.paint("DRY RUN MODE")
+            Colour::Red.paint("DRY RUN MODE")
         );
     }
 
@@ -85,7 +85,7 @@ fn main_impl() -> Result<(), String> {
         "Renamed {} files{}. Done.",
         Colour::Green.paint(success_count.to_string()),
         if dry_run {
-            format!(" ({})", Colour::Yellow.paint("DRY RUN"))
+            format!(" ({})", Colour::Red.paint("DRY RUN"))
         } else {
             "".into()
         }
