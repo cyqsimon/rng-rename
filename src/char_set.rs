@@ -115,6 +115,11 @@ impl FromStr for CustomCharSet {
         Ok(Self { chars })
     }
 }
+impl fmt::Display for CustomCharSet {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.chars.iter().collect::<String>())
+    }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CharSet {
@@ -167,17 +172,17 @@ impl fmt::Display for CharSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use CharSet::*;
         let repr = match self {
-            LettersLower => "[a-z]",
-            LettersUpper => "[A-Z]",
-            LettersMixed => "[a-zA-Z]",
-            Numbers => "[0-9]",
-            AlphaNumericLower => "[a-z0-9]",
-            AlphaNumericUpper => "[A-Z0-9]",
-            AlphaNumericMixed => "[a-zA-Z0-9]",
-            Base16Lower => "[0-9a-f]",
-            Base16Upper => "[0-9A-F]",
-            Base64 => "[A-Za-z0-9-_]",
-            Custom(_) => "custom", // TODO: show actual
+            LettersLower => "[a-z]".into(),
+            LettersUpper => "[A-Z]".into(),
+            LettersMixed => "[a-zA-Z]".into(),
+            Numbers => "[0-9]".into(),
+            AlphaNumericLower => "[a-z0-9]".into(),
+            AlphaNumericUpper => "[A-Z0-9]".into(),
+            AlphaNumericMixed => "[a-zA-Z0-9]".into(),
+            Base16Lower => "[0-9a-f]".into(),
+            Base16Upper => "[0-9A-F]".into(),
+            Base64 => "[A-Za-z0-9-_]".into(),
+            Custom(chars) => format!("Custom(\"{}\")", chars),
         };
         write!(f, "{}", repr)
     }

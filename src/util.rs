@@ -26,6 +26,18 @@ impl TryFrom<(ExtensionModeSelection, Option<String>)> for ExtensionMode {
         })
     }
 }
+impl fmt::Display for ExtensionMode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use ExtensionMode::*;
+        let repr = match self {
+            KeepAll => "KeepAll".into(),
+            KeepLast => "KeepLast".into(),
+            Static(ext) => format!("Static(\"{}\")", ext),
+            Discard => "Discard".into(),
+        };
+        write!(f, "{}", repr)
+    }
+}
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum OnErrorResponse {
