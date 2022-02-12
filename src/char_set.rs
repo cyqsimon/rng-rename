@@ -168,6 +168,13 @@ impl TryFrom<(CharSetSelection, Option<CustomCharSet>, Option<Casing>)> for Char
         }
     }
 }
+impl Index<usize> for CharSet {
+    type Output = char;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        &self.get_char_set()[index]
+    }
+}
 impl fmt::Display for CharSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use CharSet::*;
@@ -185,13 +192,6 @@ impl fmt::Display for CharSet {
             Custom(chars) => format!("Custom(\"{}\")", chars),
         };
         write!(f, "{}", repr)
-    }
-}
-impl Index<usize> for CharSet {
-    type Output = char;
-
-    fn index(&self, index: usize) -> &Self::Output {
-        &self.get_char_set()[index]
     }
 }
 impl CharSet {

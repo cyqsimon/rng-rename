@@ -25,6 +25,11 @@ pub enum NameGenerationError {
     TooManyFiles { count: usize },
     TooManyPermutations { char_set: CharSet, length: usize },
 }
+impl From<NameGenerationError> for String {
+    fn from(err: NameGenerationError) -> Self {
+        err.to_string()
+    }
+}
 impl fmt::Display for NameGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use NameGenerationError::*;
@@ -50,11 +55,6 @@ impl fmt::Display for NameGenerationError {
             }
         };
         write!(f, "{}", repr)
-    }
-}
-impl From<NameGenerationError> for String {
-    fn from(err: NameGenerationError) -> Self {
-        err.to_string()
     }
 }
 
@@ -195,6 +195,11 @@ pub enum NameFinaliseError {
     IOError(io::Error),
     UserHalt,
 }
+impl From<io::Error> for NameFinaliseError {
+    fn from(err: io::Error) -> Self {
+        Self::IOError(err)
+    }
+}
 impl fmt::Display for NameFinaliseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         use NameFinaliseError::*;
@@ -209,11 +214,6 @@ impl fmt::Display for NameFinaliseError {
 impl From<NameFinaliseError> for String {
     fn from(err: NameFinaliseError) -> Self {
         err.to_string()
-    }
-}
-impl From<io::Error> for NameFinaliseError {
-    fn from(err: io::Error) -> Self {
-        Self::IOError(err)
     }
 }
 

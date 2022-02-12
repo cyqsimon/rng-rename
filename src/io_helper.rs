@@ -19,6 +19,11 @@ pub enum DedupError {
     IOError(io::Error),
     UserHalt,
 }
+impl From<io::Error> for DedupError {
+    fn from(err: io::Error) -> Self {
+        Self::IOError(err)
+    }
+}
 impl fmt::Display for DedupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
@@ -31,11 +36,6 @@ impl fmt::Display for DedupError {
 impl From<DedupError> for String {
     fn from(err: DedupError) -> Self {
         err.to_string()
-    }
-}
-impl From<io::Error> for DedupError {
-    fn from(err: io::Error) -> Self {
-        Self::IOError(err)
     }
 }
 
@@ -95,6 +95,11 @@ pub enum RenameError {
     IOError(io::Error),
     UserHalt,
 }
+impl From<io::Error> for RenameError {
+    fn from(err: io::Error) -> Self {
+        Self::IOError(err)
+    }
+}
 impl fmt::Display for RenameError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
@@ -107,11 +112,6 @@ impl fmt::Display for RenameError {
 impl From<RenameError> for String {
     fn from(err: RenameError) -> Self {
         err.to_string()
-    }
-}
-impl From<io::Error> for RenameError {
-    fn from(err: io::Error) -> Self {
-        Self::IOError(err)
     }
 }
 
@@ -195,17 +195,6 @@ pub enum BatchConfirmResponse {
     Skip,
     Halt,
 }
-impl fmt::Display for BatchConfirmResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use BatchConfirmResponse::*;
-        let repr = match self {
-            Proceed => "proceed",
-            Skip => "skip",
-            Halt => "halt",
-        };
-        write!(f, "{}", repr)
-    }
-}
 impl FromStr for BatchConfirmResponse {
     type Err = String;
 
@@ -217,6 +206,17 @@ impl FromStr for BatchConfirmResponse {
             "h" | "halt" => Halt,
             other => Err(format!("\"{}\" is not a valid response", other))?,
         })
+    }
+}
+impl fmt::Display for BatchConfirmResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use BatchConfirmResponse::*;
+        let repr = match self {
+            Proceed => "proceed",
+            Skip => "skip",
+            Halt => "halt",
+        };
+        write!(f, "{}", repr)
     }
 }
 

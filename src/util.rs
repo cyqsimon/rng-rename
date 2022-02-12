@@ -48,17 +48,6 @@ pub enum OnErrorResponse {
     Retry,
     Halt,
 }
-impl fmt::Display for OnErrorResponse {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use OnErrorResponse::*;
-        let repr = match self {
-            Skip => "skip",
-            Retry => "retry",
-            Halt => "halt",
-        };
-        write!(f, "{}", repr)
-    }
-}
 impl FromStr for OnErrorResponse {
     type Err = String;
 
@@ -70,6 +59,17 @@ impl FromStr for OnErrorResponse {
             "h" | "halt" => Halt,
             other => Err(format!("\"{}\" is not a valid response", other))?,
         })
+    }
+}
+impl fmt::Display for OnErrorResponse {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        use OnErrorResponse::*;
+        let repr = match self {
+            Skip => "skip",
+            Retry => "retry",
+            Halt => "halt",
+        };
+        write!(f, "{}", repr)
     }
 }
 
