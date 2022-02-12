@@ -15,6 +15,8 @@ pub enum ExtensionMode {
 impl TryFrom<(ExtensionModeSelection, Option<String>)> for ExtensionMode {
     type Error = String;
 
+    /// Convert from `ExtensionModeSelection` to `ExtensionMode`, optionally supplying a string
+    /// to use for the static extension.
     fn try_from(value: (ExtensionModeSelection, Option<String>)) -> Result<Self, Self::Error> {
         use ExtensionModeSelection::*;
         Ok(match value {
@@ -39,6 +41,7 @@ impl fmt::Display for ExtensionMode {
     }
 }
 
+/// Legal responses from the user when we encounter an error.
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
 pub enum OnErrorResponse {
     Skip,
@@ -70,6 +73,7 @@ impl FromStr for OnErrorResponse {
     }
 }
 
+/// Prompt the user to produce an `OnErrorResponse`.
 pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> io::Result<OnErrorResponse>
 where
     S: Into<String>,

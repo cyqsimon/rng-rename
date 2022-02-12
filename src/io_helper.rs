@@ -324,6 +324,7 @@ fn rename_files_confirm(
     Ok(success_count)
 }
 
+/// Perform rename on a single file.
 fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
     trace!("Renaming {:?} to {}. Dry run: {}.", path, new_name, dry_run);
 
