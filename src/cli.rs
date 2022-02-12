@@ -127,7 +127,7 @@ pub struct CliArgs {
     /// Set the character set to use for random characters. Use `--case` to set
     /// upper, lower, or mixed case, if applicable to the character set you chose.
     ///
-    /// `base64` uses base64url encoding (`[A-Za-z0-9-_]`) to be file-name safe.
+    /// `base64` uses base64url encoding (`[A-Za-z0-9-_]`) to be filename-safe.
     ///
     /// For mode `custom`, the option `--custom-chars` must also be specified.
     #[clap(
