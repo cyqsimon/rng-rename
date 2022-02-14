@@ -22,7 +22,7 @@ user, to give it a one.
 rng-rename path/to/foo path/to/bar.txt
 ```
 
-You can expect something like this:
+The defaults are sensible, so you can expect something like this:
 ```
 Batch #1/1:
         "/abs/path/to/foo" -> "09c43d3d"
