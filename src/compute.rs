@@ -318,8 +318,8 @@ where
                 name_combined,
                 sf::Options {
                     // if filename is too long, let `fs::rename` handle it
-                    // this way we fail loudly instead of silently instead of
-                    // inadvertently truncating the extension or something
+                    // this way we fail loudly instead of silently, inadvertently truncating
+                    // the extension or something
                     truncate: false,
                     ..Default::default()
                 },
