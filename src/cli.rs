@@ -181,8 +181,17 @@ pub struct CliArgs {
     pub verbosity: log::Level,
 
     /// The files to rename.
+    ///
+    /// Note: if any of your files starts with a hyphen (`-`), it could be misinterpreted
+    /// as a flag and prevent the program from running.
+    ///
+    /// If so, please put all your flags and options in front of the list of files, then
+    /// separate them with 2 hyphens. For example:
+    ///
+    ///  - Instead of `rng-rename --length 5 -file-1 -file-2`
+    ///  - Run `rng-rename --length 5 -- -file-1 -file-2`
     #[derivative(Debug(format_with = "debug_vec_omit"))]
-    #[clap(required = true, value_name = "FILES")]
+    #[clap(required = true, value_name = "FILES", verbatim_doc_comment)]
     pub files: Vec<PathBuf>,
 }
 
