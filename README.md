@@ -33,7 +33,7 @@ Renamed 2 files. Done.
 
 Markdown doesn't show colours, but the real thing does!
 
-![rng-rename on Alacritty](example_alacritty.png)
+![rng-rename on Alacritty](res/example_alacritty.png)
 
 There are plenty of various options available. You can for example:
  - Preview using the `--dry-run` flag
