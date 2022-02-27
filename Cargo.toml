@@ -3,6 +3,7 @@ authors = ["cyqsimon <28627918+cyqsimon@users.noreply.github.com>"]
 categories = ["command-line-utilities", "filesystem"]
 description = "Rename files to randomly generated strings."
 edition = "2021"
+exclude = ["/example_alacritty.png"]
 keywords = ["random", "rename", "filetool"]
 license = "AGPL-3.0-only"
 name = "rng-rename"
