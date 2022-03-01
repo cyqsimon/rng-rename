@@ -20,7 +20,7 @@ const FILE_COUNT_MAX: usize = 2usize.pow(20);
 const PERMUTATION_COUNT_MAX: usize = 2usize.pow(24);
 /// The ratio of files to naming space at which we switch from
 /// `generate_on_demand` to `generate_then_match`.
-const STRATEGY_RATIO_THRESHOLD: f64 = 0.1; // TODO: see `Errata.md`
+const STRATEGY_RATIO_THRESHOLD: f64 = 0.6; // TODO: see `Errata.md`
 
 #[derive(Debug, Clone)]
 pub enum NameGenerationError {
