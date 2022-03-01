@@ -107,7 +107,7 @@ where
     }
 }
 
-/// Generate each random string independently. Potential conflicts
+/// Generate each random string independently. Potential collisions
 /// are resolved on demand by regenerating.
 ///
 /// Use when the naming space is large and the files are few.
@@ -132,7 +132,7 @@ fn generate_on_demand(
             }
             // check if name is used
             if name_map.iter().any(|(_, existing_name)| existing_name == &name) {
-                debug!("Random name conflict: \"{}\". Retrying.", name);
+                debug!("Random name collision: \"{}\". Retrying.", name);
             } else {
                 break name;
             }
