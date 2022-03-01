@@ -18,6 +18,9 @@ use crate::{
 const FILE_COUNT_MAX: usize = 2usize.pow(20);
 /// The hard-coded limit for the number of permutations that can be generated first.
 const PERMUTATION_COUNT_MAX: usize = 2usize.pow(24);
+/// The ratio of files to naming space at which we switch from
+/// `generate_on_demand` to `generate_then_match`.
+const STRATEGY_RATIO_THRESHOLD: f64 = 0.1; // TODO: see `Errata.md`
 
 #[derive(Debug, Clone)]
 pub enum NameGenerationError {
@@ -68,10 +71,6 @@ pub fn generate_random_names<P>(
 where
     P: AsRef<Path>,
 {
-    /// The ratio of files to naming space at which we switch from
-    /// `generate_on_demand` to `generate_then_match`.
-    const STRATEGY_RATIO_THRESHOLD: f64 = 0.1;
-
     trace!("Checking if there are enough permutations.");
     let naming_spaces_size = chars.len().pow(length as u32);
     if files.len() > naming_spaces_size {
@@ -337,9 +336,7 @@ where
 fn get_extension(path: impl AsRef<Path>, ext_mode: &ExtensionMode) -> Result<Option<String>, NameFinaliseError> {
     match ext_mode {
         ExtensionMode::KeepAll => {
-            // TODO: awaiting implementation and stabilisation of `Path::file_suffix`
-            // afterwards this entire match block can be refactored
-            // see https://github.com/rust-lang/rust/issues/86319#issuecomment-996152668
+            // TODO: see `Errata.md`
             path.as_ref()
                 .file_name()
                 .expect("paths should already be canonicalised")

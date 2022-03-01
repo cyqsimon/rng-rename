@@ -337,8 +337,7 @@ fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
         new_path
     };
 
-    // TODO: use `Path::try_exists` instead after stabilisation
-    // see https://github.com/rust-lang/rust/issues/83186
+    // TODO: see `Errata.md`
     if new_abs_path.exists() {
         Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
