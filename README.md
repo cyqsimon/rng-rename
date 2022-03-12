@@ -1,22 +1,9 @@
 # rng-rename
+
 A CLI tool to rename files to randomly generated strings.
 
-## Why?
-Suppose you downloaded a few hundred images to use as your desktop wallpapers. You have a
-wallpaper tool that cycles through them, but unfortunately it only supports filename-ordering,
-whereas you prefer to have the images shuffled.
-
-Well, rng-rename to the rescue! Simply run this tool on all your images and the filename-ordering
-is completely scrambled.
-
-You can also use this tool for data analysis purposes. A data scientist might want to randomise
-their dataset before running some analysis, but keep the same ordering over several runs.
-rng-rename is useful in this case too.
-
-I guess you can say rng-rename is a tool looking for a purpose. Ultimately it is up to you, the
-user, to give it a one.
-
 ## Quick Start
+
 ```sh
 # rename `path/to/foo` and `path/to/bar.txt` to randomly generated names
 rng-rename path/to/foo path/to/bar.txt
@@ -47,9 +34,26 @@ And more. For full usage, run:
 ```sh
 rng-rename --help
 ```
+
+## Why?
+Suppose you downloaded a few hundred images to use as your desktop wallpapers. You have a
+wallpaper tool that cycles through them, but unfortunately it only supports filename-ordering,
+whereas you prefer to have the images shuffled.
+
+Well, rng-rename to the rescue! Simply run this tool on all your images and the filename-ordering
+is completely scrambled.
+
+You can also use this tool for data analysis purposes. A data scientist might want to randomise
+their dataset before running some analysis, but keep the same ordering over several runs.
+rng-rename is useful in this case too.
+
+I guess you can say rng-rename is a tool looking for a purpose. Ultimately it is up to you, the
+user, to give it a one.
+
 ## Install
 
 ### from crates.io
+
 [rng-rename on crates.io](https://crates.io/crates/rng-rename)
 
 ```sh
@@ -57,6 +61,7 @@ cargo install rng-rename
 ```
 
 ### from AUR
+
 [rng-rename on AUR](https://aur.archlinux.org/packages/rng-rename)
 
 ```sh
@@ -66,3 +71,9 @@ paru rng-rename
 # or with yay
 yay rng-rename
 ```
+
+## Contributing
+
+All ideas and pull requests are welcomed! Please abide by [Rust's official code of conduct](https://www.rust-lang.org/policies/code-of-conduct).
+
+For an incomplete list of things that could use improvement, please see [Errata.md](Errata.md).
