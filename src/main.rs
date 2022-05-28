@@ -7,12 +7,12 @@ mod util;
 use std::process;
 
 use ansi_term::Colour;
-use clap::Parser;
+use clap::{crate_name, CommandFactory, Parser};
 use compute::generate_random_names;
 use log::debug;
 
 use crate::{
-    cli::CliArgs,
+    cli::{CliArgs, SubCmd},
     compute::finalise_names,
     io_helper::{dedup_paths, rename_files},
 };
@@ -33,6 +33,7 @@ fn main_impl() -> Result<(), String> {
     debug!("{:?}", args);
 
     let CliArgs {
+        sub_cmd,
         confirm_mode,
         confirm_batch_size,
         dry_run,
@@ -49,6 +50,20 @@ fn main_impl() -> Result<(), String> {
         verbosity: _,
         files,
     } = args;
+
+    if let Some(sub_cmd) = sub_cmd {
+        match sub_cmd {
+            SubCmd::Complete { shell_type } => {
+                clap_complete::generate(
+                    shell_type,
+                    &mut CliArgs::command(),
+                    crate_name!(),
+                    &mut std::io::stdout(),
+                );
+                return Ok(());
+            }
+        }
+    }
 
     if dry_run {
         println!(

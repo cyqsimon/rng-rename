@@ -1,7 +1,8 @@
 use core::fmt;
 use std::{num::ParseIntError, path::PathBuf, str::FromStr};
 
-use clap::Parser;
+use clap::{Parser, Subcommand, ValueHint};
+use clap_complete::Shell;
 use derivative::Derivative;
 
 use crate::char_set::CustomCharSet;
@@ -10,6 +11,9 @@ use crate::char_set::CustomCharSet;
 #[derivative(Debug)]
 #[clap(author, version, about)]
 pub struct CliArgs {
+    #[clap(subcommand)]
+    pub sub_cmd: Option<SubCmd>,
+
     /// Confirm before rename?
     ///
     /// Whether to confirm with the user before the rename action is performed.
@@ -180,8 +184,9 @@ pub struct CliArgs {
 
     /// The files to rename.
     ///
-    /// Note: if any of your files starts with a hyphen (`-`), it could be misinterpreted
-    /// as a flag and prevent the program from running.
+    /// Note: if any of your files starts with a hyphen (`-`)
+    /// or has the exact same name of one of the subcommands (e.g. `help`),
+    /// it could be misinterpreted as a flag/subcommand and prevent the program from running.
     ///
     /// If so, please put all your flags and options in front of the list of files, then
     /// separate them with 2 hyphens. For example:
@@ -189,8 +194,30 @@ pub struct CliArgs {
     ///  - Instead of `rng-rename --length 5 -file-1 -file-2`
     ///  - Run `rng-rename --length 5 -- -file-1 -file-2`
     #[derivative(Debug(format_with = "debug_vec_omit"))]
-    #[clap(required = true, value_name = "FILES", verbatim_doc_comment)]
+    #[clap(
+        required = true,
+        value_name = "FILES",
+        value_hint(ValueHint::AnyPath),
+        verbatim_doc_comment
+    )]
     pub files: Vec<PathBuf>,
+}
+
+#[derive(Debug, Clone, Subcommand)]
+#[clap(subcommand_negates_reqs(true))]
+pub enum SubCmd {
+    /// Generate a completion script for `rng-rename` to stdout.
+    ///
+    /// E.g. `rng-rename complete bash > ~/.local/share/bash-completion/completions/rng-rename`
+    Complete {
+        /// The type of shell.
+        #[clap(
+            required = true,
+            value_name = "SHELL_TYPE",
+            possible_values = ["bash", "fish", "powershell", "zsh"],
+        )]
+        shell_type: Shell,
+    },
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq)]
