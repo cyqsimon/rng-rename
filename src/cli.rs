@@ -2,9 +2,7 @@ use core::fmt;
 use std::{num::ParseIntError, path::PathBuf, str::FromStr};
 
 use clap::Parser;
-// `use derivative::Derivative;` causes rust-analyzer to freak out
-// see https://github.com/rust-analyzer/rust-analyzer/issues/7459#issuecomment-907714513
-use derivative::*;
+use derivative::Derivative;
 
 use crate::char_set::CustomCharSet;
 
