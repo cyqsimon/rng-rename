@@ -51,7 +51,7 @@ pub struct CliArgs {
     ///
     /// E.g. Original file name: `tarball.tar.xz`
     ///
-    /// New extension: `keep_all` = `tar.xz`; `keep_last` = `xz`;
+    /// New extension: `keep-all` = `tar.xz`; `keep-last` = `xz`;
     /// `static` = `<STATIC_EXT>`; `discard` = None
     ///
     /// For mode `static`, the option `--static-ext` must also be specified.
@@ -160,7 +160,7 @@ pub struct CliArgs {
     /// will take no actions and fail fast.
     ///
     /// Support table: `letters` - `upper|lower|mixed`; `numbers` - N/A;
-    /// `alpha_numeric` - `upper|lower|mixed`; `base16` - `upper|lower`; `base64` - N/A;
+    /// `alpha-numeric` - `upper|lower|mixed`; `base16` - `upper|lower`; `base64` - N/A;
     /// `custom` - N/A.
     #[arg(long = "case", value_name = "CASE")]
     pub case: Option<Casing>,
