@@ -1,17 +1,18 @@
 use core::fmt;
-use std::{num::ParseIntError, path::PathBuf, str::FromStr};
+use std::{num::ParseIntError, path::PathBuf};
 
-use clap::{Parser, Subcommand, ValueHint};
+use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::Shell;
+use clap_verbosity_flag::{Verbosity, WarnLevel};
 use derivative::Derivative;
 
 use crate::char_set::CustomCharSet;
 
 #[derive(Derivative, Clone, Parser)]
 #[derivative(Debug)]
-#[clap(author, version, about)]
+#[command(author, version, about)]
 pub struct CliArgs {
-    #[clap(subcommand)]
+    #[command(subcommand)]
     pub sub_cmd: Option<SubCmd>,
 
     /// Confirm before rename?
@@ -20,12 +21,12 @@ pub struct CliArgs {
     ///
     /// `none` = "Skip confirmation"; `batch` = "Confirm several at a time";
     /// `each` = "Confirm each one individually"
-    #[clap(
+    #[arg(
         short = 'c',
         long = "confirm",
         value_name = "MODE",
-        possible_values = ["none", "batch", "each"],
-        default_value = "batch"
+        value_enum,
+        default_value_t = ConfirmMode::Batch
     )]
     pub confirm_mode: ConfirmMode,
 
@@ -34,16 +35,16 @@ pub struct CliArgs {
     /// The number of files to confirm in a batch. Only effective when `confirm = batch`.
     /// Set to 0 to confirm all at once (may be undesirable if you are processing a large
     /// number of files).
-    #[clap(
+    #[arg(
         long = "confirm-batch",
         value_name = "SIZE",
-        default_value = "10",
-        parse(try_from_str = parse_batch_size)
+        default_value_t = 10,
+        value_parser = parse_batch_size
     )]
     pub confirm_batch_size: usize,
 
     /// Preview what will happen without actually performing the rename.
-    #[clap(short = 'd', long = "dry-run")]
+    #[arg(short = 'd', long = "dry-run")]
     pub dry_run: bool,
 
     /// How to handle the original file extension?
@@ -56,23 +57,23 @@ pub struct CliArgs {
     /// For mode `static`, the option `--static-ext` must also be specified.
     ///
     /// Use with caution!
-    #[clap(
+    #[arg(
         short = 'x',
         long = "ext-mode",
         value_name = "MODE",
-        possible_values = ["keep_all", "keep_last", "static", "discard"],
-        default_value = "keep_last"
+        value_enum,
+        default_value_t = ExtensionModeSelection::KeepLast
     )]
     pub extension_mode_selection: ExtensionModeSelection,
 
     /// The static file extension to use when `--ext-mode=static`, without the leading dot.
     ///
     /// Any character that's not filename-safe will be removed.
-    #[clap(
+    #[arg(
         long = "static-ext",
         value_name = "EXT",
         allow_hyphen_values = true,
-        required_if_eq("extension-mode-selection", "static")
+        required_if_eq("extension_mode_selection", "static")
     )]
     pub static_ext: Option<String>,
 
@@ -82,23 +83,19 @@ pub struct CliArgs {
     ///
     /// `ignore` = "Ignore the error silently and continue"; `warn` = "Prompt the user";
     /// `halt` = "Fail fast and exit immediately"
-    #[clap(
+    #[arg(
         short = 'e',
         long = "error-handling-mode",
         value_name = "MODE",
-        possible_values = ["ignore", "warn", "halt"],
-        default_value = "warn"
+        value_enum,
+        default_value_t = ErrorHandlingMode::Warn
     )]
     pub error_handling_mode: ErrorHandlingMode,
 
     /// Do not use unless you know what you're doing.
     ///
     /// Force use a specific random name generation strategy. Useful flag for testing performance.
-    #[clap(
-        long = "force-generation-strategy",
-        value_name = "STRAT",
-        possible_values = ["on_demand", "match"]
-    )]
+    #[arg(long = "force-generation-strategy", value_name = "STRAT", value_enum)]
     pub force_generation_strategy: Option<NameGenerationStrategy>,
 
     /// The number of random characters for each name.
@@ -109,19 +106,19 @@ pub struct CliArgs {
     ///
     /// If the character set & length combination does not have enough permutations
     /// to cover all input files, the program will take no actions and fail fast.
-    #[clap(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
+    #[arg(short = 'l', long = "length", value_name = "LEN", default_value = "8")]
     pub name_length: usize,
 
     /// Prefix each name with a static string.
     ///
     /// Any character that's not filename-safe will be removed.
-    #[clap(long = "prefix", value_name = "PREFIX", allow_hyphen_values = true)]
+    #[arg(long = "prefix", value_name = "PREFIX", allow_hyphen_values = true)]
     pub name_prefix: Option<String>,
 
     /// Suffix each name with a static string (before the extension).
     ///
     /// Any character that's not filename-safe will be removed.
-    #[clap(long = "suffix", value_name = "SUFFIX", allow_hyphen_values = true)]
+    #[arg(long = "suffix", value_name = "SUFFIX", allow_hyphen_values = true)]
     pub name_suffix: Option<String>,
 
     /// What random characters to use?
@@ -132,13 +129,13 @@ pub struct CliArgs {
     /// `base64` uses base64url encoding (`[A-Za-z0-9-_]`) to be filename-safe.
     ///
     /// For mode `custom`, the option `--custom-chars` must also be specified.
-    #[clap(
+    #[arg(
         short = 's',
         long = "char-set",
         alias = "charset",
         value_name = "SET",
-        possible_values = ["letters", "numbers", "alpha_numeric", "base16", "base64", "custom"],
-        default_value = "base16"
+        value_enum,
+        default_value_t = CharSetSelection::Base16
     )]
     pub char_set_selection: CharSetSelection,
 
@@ -147,12 +144,11 @@ pub struct CliArgs {
     /// E.g. `--custom-chars=ABCDabcd`
     ///
     /// Inclusion of any character that's not filename-safe will cause an error.
-    #[clap(
+    #[arg(
         long = "custom-chars",
         value_name = "CHARS",
         allow_hyphen_values = true,
-        required_if_eq("char-set-selection", "custom"),
-        parse(try_from_str)
+        required_if_eq("char_set_selection", "custom")
     )]
     pub custom_chars: Option<CustomCharSet>,
 
@@ -166,21 +162,11 @@ pub struct CliArgs {
     /// Support table: `letters` - `upper|lower|mixed`; `numbers` - N/A;
     /// `alpha_numeric` - `upper|lower|mixed`; `base16` - `upper|lower`; `base64` - N/A;
     /// `custom` - N/A.
-    #[clap(
-        long = "case",
-        value_name = "CASE",
-        possible_values = ["upper", "lower", "mixed"],
-    )]
+    #[arg(long = "case", value_name = "CASE")]
     pub case: Option<Casing>,
 
-    /// Use verbose logging.
-    ///
-    /// Set the verbosity level of logging. This flag can be specified multiple times.
-    ///
-    /// None = "Warn"; Once = "Info"; Twice = "Debug"; Thrice = "Trace"
-
-    #[clap(short = 'v', long = "verbose", parse(from_occurrences = parse_verbosity))]
-    pub verbosity: log::Level,
+    #[command(flatten)]
+    pub verbosity: Verbosity<WarnLevel>,
 
     /// The files to rename.
     ///
@@ -194,7 +180,7 @@ pub struct CliArgs {
     ///  - Instead of `rng-rename --length 5 -file-1 -file-2`
     ///  - Run `rng-rename --length 5 -- -file-1 -file-2`
     #[derivative(Debug(format_with = "debug_vec_omit"))]
-    #[clap(
+    #[arg(
         required = true,
         value_name = "FILES",
         value_hint(ValueHint::AnyPath),
@@ -204,99 +190,52 @@ pub struct CliArgs {
 }
 
 #[derive(Debug, Clone, Subcommand)]
-#[clap(subcommand_negates_reqs(true))]
+#[command(subcommand_negates_reqs(true))]
 pub enum SubCmd {
     /// Generate a completion script for `rng-rename` to stdout.
     ///
     /// E.g. `rng-rename complete bash > ~/.local/share/bash-completion/completions/rng-rename`
     Complete {
         /// The type of shell.
-        #[clap(
-            required = true,
-            value_name = "SHELL_TYPE",
-            possible_values = ["bash", "fish", "powershell", "zsh"],
-        )]
+        #[arg(required = true, value_name = "SHELL", value_enum)]
         shell_type: Shell,
     },
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum ConfirmMode {
     None,
     Batch,
     Each,
 }
-impl FromStr for ConfirmMode {
-    type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "none" => Self::None,
-            "batch" => Self::Batch,
-            "each" => Self::Each,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum ExtensionModeSelection {
     KeepAll,
     KeepLast,
     Static,
     Discard,
 }
-impl FromStr for ExtensionModeSelection {
-    type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "keep_all" => Self::KeepAll,
-            "keep_last" => Self::KeepLast,
-            "static" => Self::Static,
-            "discard" => Self::Discard,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum ErrorHandlingMode {
     Ignore,
     Warn,
     Halt,
 }
-impl FromStr for ErrorHandlingMode {
-    type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "ignore" => Self::Ignore,
-            "warn" => Self::Warn,
-            "halt" => Self::Halt,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum NameGenerationStrategy {
     OnDemand,
     Match,
 }
-impl FromStr for NameGenerationStrategy {
-    type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "on_demand" => Self::OnDemand,
-            "match" => Self::Match,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum CharSetSelection {
     Custom,
     Letters,
@@ -305,39 +244,13 @@ pub enum CharSetSelection {
     Base16,
     Base64,
 }
-impl FromStr for CharSetSelection {
-    type Err = String;
 
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "custom" => Self::Custom,
-            "letters" => Self::Letters,
-            "numbers" => Self::Numbers,
-            "alpha_numeric" => Self::AlphaNumeric,
-            "base16" => Self::Base16,
-            "base64" => Self::Base64,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
-}
-
-#[derive(Debug, Copy, Clone, PartialEq, Eq)]
+#[derive(Debug, Copy, Clone, PartialEq, Eq, ValueEnum)]
+#[value(rename_all = "kebab-case")]
 pub enum Casing {
     Upper,
     Lower,
     Mixed,
-}
-impl FromStr for Casing {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Ok(match s {
-            "upper" => Self::Upper,
-            "lower" => Self::Lower,
-            "mixed" => Self::Mixed,
-            _ => unreachable!("Invalid values should be caught by clap"),
-        })
-    }
 }
 
 /// Map input of `0` to `MAX`, as specified in the docs.
@@ -347,16 +260,6 @@ fn parse_batch_size(s: &str) -> Result<usize, ParseIntError> {
         0 => usize::MAX,
         other => other,
     })
-}
-
-fn parse_verbosity(occurrences: u64) -> log::Level {
-    use log::Level::*;
-    match occurrences {
-        0 => Warn,
-        1 => Info,
-        2 => Debug,
-        3.. => Trace,
-    }
 }
 
 fn debug_vec_omit(v: &Vec<impl fmt::Debug>, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {

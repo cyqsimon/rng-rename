@@ -12,8 +12,9 @@ version = "0.5.2"
 
 [dependencies]
 ansi_term = "0.12.1"
-clap = {version = "3.2.23", features = ["cargo", "derive", "unicode"]}
-clap_complete = "3.2.5"
+clap = {version = "4.1.7", features = ["cargo", "derive", "unicode"]}
+clap-verbosity-flag = "2.0.0"
+clap_complete = "4.1.4"
 derivative = "2.2.0"
 dialoguer = "0.10.3"
 itertools = "0.10.5"

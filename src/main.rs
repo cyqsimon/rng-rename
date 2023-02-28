@@ -29,7 +29,9 @@ fn main() {
 
 fn main_impl() -> Result<(), String> {
     let args = CliArgs::parse();
-    simple_logger::init_with_level(args.verbosity).map_err(|err| err.to_string())?;
+    if let Some(lvl) = args.verbosity.log_level() {
+        simple_logger::init_with_level(lvl).map_err(|err| err.to_string())?;
+    }
     debug!("{:?}", args);
 
     let CliArgs {
