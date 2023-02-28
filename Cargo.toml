@@ -12,13 +12,13 @@ version = "0.5.2"
 
 [dependencies]
 ansi_term = "0.12.1"
-clap = {version = "3.2.22", features = ["cargo", "derive", "unicode"]}
+clap = {version = "3.2.23", features = ["cargo", "derive", "unicode"]}
 clap_complete = "3.2.5"
 derivative = "2.2.0"
-dialoguer = "0.10.2"
+dialoguer = "0.10.3"
 itertools = "0.10.5"
 log = "0.4.17"
 rand = "0.8.5"
 sanitize-filename = "0.4.0"
-simple_logger = "2.3.0"
+simple_logger = "4.0.0"
 # strum = {version = "0.23.0", features = ["derive"]}
