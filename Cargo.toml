@@ -12,14 +12,14 @@ version = "0.6.1"
 
 [dependencies]
 ansi_term = "0.12.1"
-clap = {version = "4.1.7", features = ["cargo", "derive", "unicode"]}
-clap-verbosity-flag = "2.0.0"
-clap_complete = "4.1.4"
+clap = {version = "4.3.11", features = ["cargo", "derive", "unicode"]}
+clap-verbosity-flag = "2.0.1"
+clap_complete = "4.3.2"
 derivative = "2.2.0"
-dialoguer = "0.10.3"
-itertools = "0.10.5"
-log = "0.4.17"
+dialoguer = "0.10.4"
+itertools = "0.11.0"
+log = "0.4.19"
 rand = "0.8.5"
 sanitize-filename = "0.4.0"
-simple_logger = "4.0.0"
+simple_logger = "4.2.0"
 # strum = {version = "0.23.0", features = ["derive"]}
