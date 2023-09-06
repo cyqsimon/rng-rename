@@ -35,22 +35,22 @@ impl From<NameGenerationError> for String {
 }
 impl fmt::Display for NameGenerationError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use NameGenerationError::*;
+        use NameGenerationError as E;
         let repr = match self {
-            InsufficientNamingSpace { needs, space } => {
+            E::InsufficientNamingSpace { needs, space } => {
                 format!(
                     "This combination of character set and length cannot uniquely cover every file.\n\
                     There are {} files but only {} unique names available.",
                     needs, space
                 )
             }
-            TooManyFiles { count } => {
+            E::TooManyFiles { count } => {
                 format!(
                     "Cannot process {} files at once. Currently the limit is {}.",
                     count, FILE_COUNT_MAX
                 )
             }
-            TooManyPermutations { char_set, length } => {
+            E::TooManyPermutations { char_set, length } => {
                 format!(
                     "Cannot enumerate all permutations with the character set {} and length {}.",
                     char_set, length
@@ -201,11 +201,11 @@ impl From<io::Error> for NameFinaliseError {
 }
 impl fmt::Display for NameFinaliseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use NameFinaliseError::*;
+        use NameFinaliseError as E;
         let repr = match self {
-            NotUtf8 { path } => format!("{:?} is not UTF8", path),
-            IOError(err) => err.to_string(),
-            UserHalt => "user halt".into(),
+            E::NotUtf8 { path } => format!("{:?} is not UTF8", path),
+            E::IOError(err) => err.to_string(),
+            E::UserHalt => "user halt".into(),
         };
         write!(f, "{}", repr)
     }

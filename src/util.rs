@@ -18,24 +18,24 @@ impl TryFrom<(ExtensionModeSelection, Option<String>)> for ExtensionMode {
     /// Convert from `ExtensionModeSelection` to `ExtensionMode`, optionally supplying a string
     /// to use for the static extension.
     fn try_from(value: (ExtensionModeSelection, Option<String>)) -> Result<Self, Self::Error> {
-        use ExtensionModeSelection::*;
+        use ExtensionModeSelection as S;
         Ok(match value {
-            (KeepAll, _) => Self::KeepAll,
-            (KeepLast, _) => Self::KeepLast,
-            (Static, Some(ext)) => Self::Static(ext),
-            (Static, None) => Err("`--static-ext` should be required by clap".to_string())?,
-            (Discard, _) => Self::Discard,
+            (S::KeepAll, _) => Self::KeepAll,
+            (S::KeepLast, _) => Self::KeepLast,
+            (S::Static, Some(ext)) => Self::Static(ext),
+            (S::Static, None) => Err("`--static-ext` should be required by clap".to_string())?,
+            (S::Discard, _) => Self::Discard,
         })
     }
 }
 impl fmt::Display for ExtensionMode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use ExtensionMode::*;
+        use ExtensionMode as M;
         let repr = match self {
-            KeepAll => "KeepAll".into(),
-            KeepLast => "KeepLast".into(),
-            Static(ext) => format!("Static(\"{}\")", ext),
-            Discard => "Discard".into(),
+            M::KeepAll => "KeepAll".into(),
+            M::KeepLast => "KeepLast".into(),
+            M::Static(ext) => format!("Static(\"{}\")", ext),
+            M::Discard => "Discard".into(),
         };
         write!(f, "{}", repr)
     }
@@ -52,22 +52,22 @@ impl FromStr for OnErrorResponse {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use OnErrorResponse::*;
+        use OnErrorResponse as E;
         Ok(match s.to_lowercase().as_str() {
-            "s" | "skip" => Skip,
-            "r" | "retry" => Retry,
-            "h" | "halt" => Halt,
+            "s" | "skip" => E::Skip,
+            "r" | "retry" => E::Retry,
+            "h" | "halt" => E::Halt,
             other => Err(format!("\"{}\" is not a valid response", other))?,
         })
     }
 }
 impl fmt::Display for OnErrorResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use OnErrorResponse::*;
+        use OnErrorResponse as E;
         let repr = match self {
-            Skip => "skip",
-            Retry => "retry",
-            Halt => "halt",
+            E::Skip => "skip",
+            E::Retry => "retry",
+            E::Halt => "halt",
         };
         write!(f, "{}", repr)
     }

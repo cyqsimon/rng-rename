@@ -264,10 +264,10 @@ fn parse_batch_size(s: &str) -> Result<usize, ParseIntError> {
 
 fn debug_vec_omit(v: &Vec<impl fmt::Debug>, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
     use fmt::Debug;
-    use log::LevelFilter::*;
+    use log::LevelFilter as F;
 
     match log::max_level() {
-        Off | Error | Warn | Info | Debug => write!(f, "/* omitted */"),
-        Trace => v.fmt(f),
+        F::Off | F::Error | F::Warn | F::Info | F::Debug => write!(f, "/* omitted */"),
+        F::Trace => v.fmt(f),
     }
 }

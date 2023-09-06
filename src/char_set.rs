@@ -55,13 +55,13 @@ impl fmt::Display for ParseCustomCharSetError {
             chars.iter().map(|c| format!("\'{}\'", c)).join(", ")
         }
 
-        use ParseCustomCharSetError::*;
+        use ParseCustomCharSetError as E;
         let repr = match self {
-            IllegalChars(chars) => format!(
+            E::IllegalChars(chars) => format!(
                 "the custom character set contains illegal characters: {}",
                 chars_to_string(chars)
             ),
-            DuplicateChars(chars) => format!(
+            E::DuplicateChars(chars) => format!(
                 "the custom character set contains duplicate characters: {}",
                 chars_to_string(chars)
             ),
@@ -79,7 +79,7 @@ impl FromStr for CustomCharSet {
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         use sanitize_filename as sf;
-        use ParseCustomCharSetError::*;
+        use ParseCustomCharSetError as E;
 
         let illegal_chars: Vec<_> = s
             .chars()
@@ -95,7 +95,7 @@ impl FromStr for CustomCharSet {
             })
             .collect();
         if !illegal_chars.is_empty() {
-            Err(IllegalChars(illegal_chars))?;
+            Err(E::IllegalChars(illegal_chars))?;
         }
 
         let duplicate_chars: Vec<_> = s
@@ -108,7 +108,7 @@ impl FromStr for CustomCharSet {
             .filter_map(|(c, count)| (count > 1).then_some(c))
             .collect();
         if !duplicate_chars.is_empty() {
-            Err(DuplicateChars(duplicate_chars))?;
+            Err(E::DuplicateChars(duplicate_chars))?;
         }
 
         let chars = s.chars().collect();
@@ -139,27 +139,27 @@ impl TryFrom<(CharSetSelection, Option<CustomCharSet>, Option<Casing>)> for Char
     type Error = String;
 
     fn try_from(combination: (CharSetSelection, Option<CustomCharSet>, Option<Casing>)) -> Result<Self, Self::Error> {
-        use Casing::*;
-        use CharSetSelection::*;
+        use Casing as C;
+        use CharSetSelection as S;
         match combination {
             // when `--char-set=custom`, `--custom-chars` is guaranteed to be set
-            (Custom, None, _) => unreachable!("`--custom-chars` should be required by clap"),
+            (S::Custom, None, _) => unreachable!("`--custom-chars` should be required by clap"),
             // when `--custom-chars` is set, `--char-set=custom` must be true
-            (Letters | Numbers | AlphaNumeric | Base16 | Base64, Some(_), _) => {
+            (S::Letters | S::Numbers | S::AlphaNumeric | S::Base16 | S::Base64, Some(_), _) => {
                 Err("`--custom-chars` cannot be used unless `--char-set=custom`".to_string())
             }
             // valid combinations
-            (Custom, Some(set), None) => Ok(Self::Custom(set)),
-            (Letters, None, None | Some(Lower)) => Ok(Self::LettersLower),
-            (Letters, None, Some(Upper)) => Ok(Self::LettersUpper),
-            (Letters, None, Some(Mixed)) => Ok(Self::LettersMixed),
-            (Numbers, None, None) => Ok(Self::Numbers),
-            (AlphaNumeric, None, None | Some(Lower)) => Ok(Self::AlphaNumericLower),
-            (AlphaNumeric, None, Some(Upper)) => Ok(Self::AlphaNumericUpper),
-            (AlphaNumeric, None, Some(Mixed)) => Ok(Self::AlphaNumericMixed),
-            (Base16, None, None | Some(Lower)) => Ok(Self::Base16Lower),
-            (Base16, None, Some(Upper)) => Ok(Self::Base16Upper),
-            (Base64, None, None) => Ok(Self::Base64),
+            (S::Custom, Some(set), None) => Ok(Self::Custom(set)),
+            (S::Letters, None, None | Some(C::Lower)) => Ok(Self::LettersLower),
+            (S::Letters, None, Some(C::Upper)) => Ok(Self::LettersUpper),
+            (S::Letters, None, Some(C::Mixed)) => Ok(Self::LettersMixed),
+            (S::Numbers, None, None) => Ok(Self::Numbers),
+            (S::AlphaNumeric, None, None | Some(C::Lower)) => Ok(Self::AlphaNumericLower),
+            (S::AlphaNumeric, None, Some(C::Upper)) => Ok(Self::AlphaNumericUpper),
+            (S::AlphaNumeric, None, Some(C::Mixed)) => Ok(Self::AlphaNumericMixed),
+            (S::Base16, None, None | Some(C::Lower)) => Ok(Self::Base16Lower),
+            (S::Base16, None, Some(C::Upper)) => Ok(Self::Base16Upper),
+            (S::Base64, None, None) => Ok(Self::Base64),
             // incompatible `--char-set` and `--case` values
             (char_set_selection, _, Some(case)) => Err(format!(
                 "the character set {:?} is incompatible with the case {:?}",
@@ -177,38 +177,38 @@ impl Index<usize> for CharSet {
 }
 impl fmt::Display for CharSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use CharSet::*;
+        use CharSet as C;
         let repr = match self {
-            LettersLower => "[a-z]".into(),
-            LettersUpper => "[A-Z]".into(),
-            LettersMixed => "[a-zA-Z]".into(),
-            Numbers => "[0-9]".into(),
-            AlphaNumericLower => "[a-z0-9]".into(),
-            AlphaNumericUpper => "[A-Z0-9]".into(),
-            AlphaNumericMixed => "[a-zA-Z0-9]".into(),
-            Base16Lower => "[0-9a-f]".into(),
-            Base16Upper => "[0-9A-F]".into(),
-            Base64 => "[A-Za-z0-9-_]".into(),
-            Custom(chars) => format!("Custom(\"{}\")", chars),
+            C::LettersLower => "[a-z]".into(),
+            C::LettersUpper => "[A-Z]".into(),
+            C::LettersMixed => "[a-zA-Z]".into(),
+            C::Numbers => "[0-9]".into(),
+            C::AlphaNumericLower => "[a-z0-9]".into(),
+            C::AlphaNumericUpper => "[A-Z0-9]".into(),
+            C::AlphaNumericMixed => "[a-zA-Z0-9]".into(),
+            C::Base16Lower => "[0-9a-f]".into(),
+            C::Base16Upper => "[0-9A-F]".into(),
+            C::Base64 => "[A-Za-z0-9-_]".into(),
+            C::Custom(chars) => format!("Custom(\"{}\")", chars),
         };
         write!(f, "{}", repr)
     }
 }
 impl CharSet {
     pub fn get_char_set(&self) -> &[char] {
-        use CharSet::*;
+        use CharSet as C;
         match self {
-            LettersLower => &LETTERS_L,
-            LettersUpper => &LETTERS_U,
-            LettersMixed => &LETTERS_M,
-            Numbers => &NUMBERS,
-            AlphaNumericLower => &ALPHA_NUMERIC_L,
-            AlphaNumericUpper => &ALPHA_NUMERIC_U,
-            AlphaNumericMixed => &ALPHA_NUMERIC_M,
-            Base16Lower => &BASE_16_L,
-            Base16Upper => &BASE_16_U,
-            Base64 => &BASE_64,
-            Custom(set) => &set.chars,
+            C::LettersLower => &LETTERS_L,
+            C::LettersUpper => &LETTERS_U,
+            C::LettersMixed => &LETTERS_M,
+            C::Numbers => &NUMBERS,
+            C::AlphaNumericLower => &ALPHA_NUMERIC_L,
+            C::AlphaNumericUpper => &ALPHA_NUMERIC_U,
+            C::AlphaNumericMixed => &ALPHA_NUMERIC_M,
+            C::Base16Lower => &BASE_16_L,
+            C::Base16Upper => &BASE_16_U,
+            C::Base64 => &BASE_64,
+            C::Custom(set) => &set.chars,
         }
     }
     pub fn len(&self) -> usize {
