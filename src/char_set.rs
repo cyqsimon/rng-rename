@@ -59,11 +59,11 @@ impl fmt::Display for ParseCustomCharSetError {
         let repr = match self {
             IllegalChars(chars) => format!(
                 "the custom character set contains illegal characters: {}",
-                chars_to_string(&chars)
+                chars_to_string(chars)
             ),
             DuplicateChars(chars) => format!(
                 "the custom character set contains duplicate characters: {}",
-                chars_to_string(&chars)
+                chars_to_string(chars)
             ),
         };
         write!(f, "{}", repr)
@@ -105,7 +105,7 @@ impl FromStr for CustomCharSet {
                 map
             })
             .into_iter()
-            .filter_map(|(c, count)| (count > 1).then(|| c))
+            .filter_map(|(c, count)| (count > 1).then_some(c))
             .collect();
         if !duplicate_chars.is_empty() {
             Err(DuplicateChars(duplicate_chars))?;
