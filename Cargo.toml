@@ -8,11 +8,11 @@ keywords = ["random", "rename", "filetool"]
 license = "AGPL-3.0-only"
 name = "rng-rename"
 repository = "https://github.com/cyqsimon/rng-rename"
-version = "0.6.3"
+version = "0.6.4"
 
 [dependencies]
 ansi_term = "0.12.1"
-clap = {version = "4.4.6", features = ["cargo", "derive", "unicode"]}
+clap = { version = "4.4.6", features = ["cargo", "derive", "unicode"] }
 clap-verbosity-flag = "2.0.1"
 clap_complete = "4.4.3"
 derivative = "2.2.0"
