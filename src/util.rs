@@ -1,4 +1,4 @@
-use std::{fmt, io, str::FromStr};
+use std::{fmt, str::FromStr};
 
 use ansi_term::Colour;
 use dialoguer::Input;
@@ -74,7 +74,7 @@ impl fmt::Display for OnErrorResponse {
 }
 
 /// Prompt the user to produce an `OnErrorResponse`.
-pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> io::Result<OnErrorResponse>
+pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> dialoguer::Result<OnErrorResponse>
 where
     S: Into<String>,
 {
@@ -92,7 +92,7 @@ where
 
     let mut response = Input::new();
     if let Some(val) = default {
-        response.default(val);
+        response = response.default(val);
     }
     response.with_prompt(prompt_text).interact()
 }

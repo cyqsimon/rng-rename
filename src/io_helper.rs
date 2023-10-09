@@ -17,6 +17,7 @@ use crate::{
 #[derive(Debug)]
 pub enum DedupError {
     IOError(io::Error),
+    DialoguerError(dialoguer::Error),
     UserHalt,
 }
 impl From<io::Error> for DedupError {
@@ -24,10 +25,16 @@ impl From<io::Error> for DedupError {
         Self::IOError(err)
     }
 }
+impl From<dialoguer::Error> for DedupError {
+    fn from(err: dialoguer::Error) -> Self {
+        Self::DialoguerError(err)
+    }
+}
 impl fmt::Display for DedupError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
             Self::IOError(err) => err.to_string(),
+            Self::DialoguerError(err) => err.to_string(),
             Self::UserHalt => "user halt".into(),
         };
         write!(f, "Failed during canonicalise & dedup step: {}", repr)
@@ -93,6 +100,7 @@ where
 #[derive(Debug)]
 pub enum RenameError {
     IOError(io::Error),
+    DialoguerError(dialoguer::Error),
     UserHalt,
 }
 impl From<io::Error> for RenameError {
@@ -100,10 +108,16 @@ impl From<io::Error> for RenameError {
         Self::IOError(err)
     }
 }
+impl From<dialoguer::Error> for RenameError {
+    fn from(err: dialoguer::Error) -> Self {
+        Self::DialoguerError(err)
+    }
+}
 impl fmt::Display for RenameError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
             Self::IOError(err) => err.to_string(),
+            Self::DialoguerError(err) => err.to_string(),
             Self::UserHalt => "user halt".into(),
         };
         write!(f, "Failed during rename step: {}", repr)

@@ -1,5 +1,5 @@
 use std::{
-    fmt, io, iter,
+    fmt, iter,
     path::{Path, PathBuf},
 };
 
@@ -191,12 +191,12 @@ fn generate_then_match(
 #[derive(Debug)]
 pub enum NameFinaliseError {
     NotUtf8 { path: PathBuf },
-    IOError(io::Error),
+    DialoguerError(dialoguer::Error),
     UserHalt,
 }
-impl From<io::Error> for NameFinaliseError {
-    fn from(err: io::Error) -> Self {
-        Self::IOError(err)
+impl From<dialoguer::Error> for NameFinaliseError {
+    fn from(err: dialoguer::Error) -> Self {
+        Self::DialoguerError(err)
     }
 }
 impl fmt::Display for NameFinaliseError {
@@ -204,7 +204,7 @@ impl fmt::Display for NameFinaliseError {
         use NameFinaliseError as E;
         let repr = match self {
             E::NotUtf8 { path } => format!("{:?} is not UTF8", path),
-            E::IOError(err) => err.to_string(),
+            E::DialoguerError(err) => err.to_string(),
             E::UserHalt => "user halt".into(),
         };
         write!(f, "{}", repr)
