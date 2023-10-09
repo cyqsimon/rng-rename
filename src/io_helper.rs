@@ -213,22 +213,20 @@ impl FromStr for BatchConfirmResponse {
     type Err = String;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        use BatchConfirmResponse as R;
         Ok(match s.to_lowercase().as_str() {
-            "p" | "proceed" => R::Proceed,
-            "s" | "skip" => R::Skip,
-            "h" | "halt" => R::Halt,
+            "p" | "proceed" => Self::Proceed,
+            "s" | "skip" => Self::Skip,
+            "h" | "halt" => Self::Halt,
             other => Err(format!("\"{}\" is not a valid response", other))?,
         })
     }
 }
 impl fmt::Display for BatchConfirmResponse {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use BatchConfirmResponse as R;
         let repr = match self {
-            R::Proceed => "proceed",
-            R::Skip => "skip",
-            R::Halt => "halt",
+            Self::Proceed => "proceed",
+            Self::Skip => "skip",
+            Self::Halt => "halt",
         };
         write!(f, "{}", repr)
     }

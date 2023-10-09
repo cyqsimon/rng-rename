@@ -55,13 +55,12 @@ impl fmt::Display for ParseCustomCharSetError {
             chars.iter().map(|c| format!("\'{}\'", c)).join(", ")
         }
 
-        use ParseCustomCharSetError as E;
         let repr = match self {
-            E::IllegalChars(chars) => format!(
+            Self::IllegalChars(chars) => format!(
                 "the custom character set contains illegal characters: {}",
                 chars_to_string(chars)
             ),
-            E::DuplicateChars(chars) => format!(
+            Self::DuplicateChars(chars) => format!(
                 "the custom character set contains duplicate characters: {}",
                 chars_to_string(chars)
             ),
@@ -177,38 +176,36 @@ impl Index<usize> for CharSet {
 }
 impl fmt::Display for CharSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        use CharSet as C;
         let repr = match self {
-            C::LettersLower => "[a-z]".into(),
-            C::LettersUpper => "[A-Z]".into(),
-            C::LettersMixed => "[a-zA-Z]".into(),
-            C::Numbers => "[0-9]".into(),
-            C::AlphaNumericLower => "[a-z0-9]".into(),
-            C::AlphaNumericUpper => "[A-Z0-9]".into(),
-            C::AlphaNumericMixed => "[a-zA-Z0-9]".into(),
-            C::Base16Lower => "[0-9a-f]".into(),
-            C::Base16Upper => "[0-9A-F]".into(),
-            C::Base64 => "[A-Za-z0-9-_]".into(),
-            C::Custom(chars) => format!("Custom(\"{}\")", chars),
+            Self::LettersLower => "[a-z]".into(),
+            Self::LettersUpper => "[A-Z]".into(),
+            Self::LettersMixed => "[a-zA-Z]".into(),
+            Self::Numbers => "[0-9]".into(),
+            Self::AlphaNumericLower => "[a-z0-9]".into(),
+            Self::AlphaNumericUpper => "[A-Z0-9]".into(),
+            Self::AlphaNumericMixed => "[a-zA-Z0-9]".into(),
+            Self::Base16Lower => "[0-9a-f]".into(),
+            Self::Base16Upper => "[0-9A-F]".into(),
+            Self::Base64 => "[A-Za-z0-9-_]".into(),
+            Self::Custom(chars) => format!("Custom(\"{}\")", chars),
         };
         write!(f, "{}", repr)
     }
 }
 impl CharSet {
     pub fn get_char_set(&self) -> &[char] {
-        use CharSet as C;
         match self {
-            C::LettersLower => &LETTERS_L,
-            C::LettersUpper => &LETTERS_U,
-            C::LettersMixed => &LETTERS_M,
-            C::Numbers => &NUMBERS,
-            C::AlphaNumericLower => &ALPHA_NUMERIC_L,
-            C::AlphaNumericUpper => &ALPHA_NUMERIC_U,
-            C::AlphaNumericMixed => &ALPHA_NUMERIC_M,
-            C::Base16Lower => &BASE_16_L,
-            C::Base16Upper => &BASE_16_U,
-            C::Base64 => &BASE_64,
-            C::Custom(set) => &set.chars,
+            Self::LettersLower => &LETTERS_L,
+            Self::LettersUpper => &LETTERS_U,
+            Self::LettersMixed => &LETTERS_M,
+            Self::Numbers => &NUMBERS,
+            Self::AlphaNumericLower => &ALPHA_NUMERIC_L,
+            Self::AlphaNumericUpper => &ALPHA_NUMERIC_U,
+            Self::AlphaNumericMixed => &ALPHA_NUMERIC_M,
+            Self::Base16Lower => &BASE_16_L,
+            Self::Base16Upper => &BASE_16_U,
+            Self::Base64 => &BASE_64,
+            Self::Custom(set) => &set.chars,
         }
     }
     pub fn len(&self) -> usize {
