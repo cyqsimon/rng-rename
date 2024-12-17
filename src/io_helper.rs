@@ -4,10 +4,10 @@ use std::{
     str::FromStr,
 };
 
-use ansi_term::Colour;
 use dialoguer::Input;
 use itertools::Itertools;
 use log::{debug, info, trace};
+use yansi::Paint;
 
 use crate::{
     cli::{ConfirmMode, ErrorHandlingMode},
@@ -72,10 +72,7 @@ where
                 (Err(err), ErrorHandlingMode::Warn) => {
                     debug!("Error canonicalising path {path:?}: {err}. Prompting.");
 
-                    println!(
-                        "Error canonicalising path {}: {err}",
-                        Colour::Red.paint(format!("{path:?}")),
-                    );
+                    println!("Error canonicalising path {}: {err}", format!("{path:?}").red());
                     let user_response = error_prompt("What to do with this path?", Some(OnErrorResponse::Skip))?;
                     trace!("User selected \"{user_response}\"");
 
@@ -178,8 +175,8 @@ fn rename_files_no_confirm(
                     debug!("Failed to rename {path:?} to {new_name}: {err}. Prompting.");
                     println!(
                         "Failed to rename {:?} to {}: {err}",
-                        Colour::Red.paint(format!("{path:?}")),
-                        Colour::Red.paint(new_name),
+                        format!("{path:?}").red(),
+                        new_name.red(),
                     );
                     let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
                     trace!("User selected \"{user_response}\"");
@@ -247,10 +244,10 @@ fn rename_files_confirm(
         // confirm batch
         println!(
             "Batch {}/{}{}:",
-            Colour::Yellow.paint(format!("#{}", batch_idx + 1)),
-            Colour::Green.paint(batch_count.to_string()),
+            format!("#{}", batch_idx + 1).yellow(),
+            batch_count.green(),
             if dry_run {
-                format!(" ({})", Colour::Red.paint("DRY RUN"))
+                format!(" ({})", "DRY RUN".red())
             } else {
                 "".into()
             }
@@ -260,22 +257,21 @@ fn rename_files_confirm(
             .map(|(path, new_name)| {
                 format!(
                     "\t{} -> {}",
-                    Colour::Yellow.paint(format!("{:?}", path.as_ref())),
-                    Colour::Green.paint(format!("\"{}\"", new_name.as_ref()))
+                    format!("{:?}", path.as_ref()).yellow(),
+                    format!("\"{}\"", new_name.as_ref().green())
                 )
             })
             .join("\n");
         println!("{batch_info_text}");
 
-        use Colour::Green;
         let prompt_text = format!(
             "Confirm batch? You can {}({}), {}({}), or {}({})",
-            Green.paint("proceed"),
-            Green.paint("p"),
-            Green.paint("skip"),
-            Green.paint("s"),
-            Green.paint("halt"),
-            Green.paint("h")
+            "proceed".green(),
+            "p".green(),
+            "skip".green(),
+            "s".green(),
+            "halt".green(),
+            "h".green(),
         );
         let user_response = Input::new()
             .default(BatchConfirmResponse::Proceed)
@@ -309,8 +305,8 @@ fn rename_files_confirm(
                         debug!("Failed to rename {path:?} to {new_name}: {err}. Prompting.");
                         println!(
                             "Failed to rename {:?} to {}: {err}",
-                            Colour::Red.paint(format!("{path:?}")),
-                            Colour::Red.paint(new_name),
+                            format!("{path:?}").red(),
+                            new_name.red(),
                         );
                         let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
                         trace!("User selected \"{user_response}\"");
@@ -357,8 +353,8 @@ fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
     if dry_run {
         println!(
             "\tRename preview: {} -> {}",
-            Colour::Yellow.paint(format!("{path:?}")),
-            Colour::Green.paint(format!("{new_abs_path:?}")),
+            format!("{path:?}").yellow(),
+            format!("{new_abs_path:?}").green(),
         );
     } else {
         trace!("New full path is {new_abs_path:?}");

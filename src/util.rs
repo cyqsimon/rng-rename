@@ -1,7 +1,7 @@
 use std::{fmt, str::FromStr};
 
-use ansi_term::Colour;
 use dialoguer::Input;
+use yansi::Paint;
 
 use crate::cli::ExtensionModeSelection;
 
@@ -75,16 +75,15 @@ pub fn error_prompt<S>(question: S, default: Option<OnErrorResponse>) -> dialogu
 where
     S: Into<String>,
 {
-    use Colour::Green;
     let prompt_text = format!(
         "{} You can {}({}), {}({}), or {}({})",
         question.into(),
-        Green.paint("skip"),
-        Green.paint("s"),
-        Green.paint("retry"),
-        Green.paint("r"),
-        Green.paint("halt"),
-        Green.paint("h")
+        "skip".green(),
+        "s".green(),
+        "retry".green(),
+        "r".green(),
+        "halt".green(),
+        "h".green(),
     );
 
     let mut response = Input::new();

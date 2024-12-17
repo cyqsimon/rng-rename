@@ -9,10 +9,10 @@ mod util;
 
 use std::process;
 
-use ansi_term::Colour;
 use clap::{crate_name, CommandFactory, Parser};
 use compute::generate_random_names;
 use log::debug;
+use yansi::Paint;
 
 use crate::{
     cli::{CliArgs, SubCmd},
@@ -31,6 +31,9 @@ fn main() {
 }
 
 fn main_impl() -> Result<(), String> {
+    // set conditional colourisation
+    yansi::whenever(yansi::Condition::TTY_AND_COLOR);
+
     let args = CliArgs::parse();
     if let Some(lvl) = args.verbosity.log_level() {
         simple_logger::init_with_level(lvl).map_err(|err| err.to_string())?;
@@ -71,10 +74,7 @@ fn main_impl() -> Result<(), String> {
     }
 
     if dry_run {
-        println!(
-            "You are in {}. Your files will not be touched.",
-            Colour::Red.paint("DRY RUN MODE")
-        );
+        println!("You are in {}. Your files will not be touched.", "DRY RUN MODE".red());
     }
 
     let files_unique = dedup_paths(&files, error_handling_mode)?;
@@ -103,9 +103,9 @@ fn main_impl() -> Result<(), String> {
 
     println!(
         "Renamed {} files{}. Done.",
-        Colour::Green.paint(success_count.to_string()),
+        success_count.green(),
         if dry_run {
-            format!(" ({})", Colour::Red.paint("DRY RUN"))
+            format!(" ({})", "DRY RUN".red())
         } else {
             "".into()
         }

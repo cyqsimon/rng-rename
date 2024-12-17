@@ -3,10 +3,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use ansi_term::Colour;
 use itertools::Itertools;
 use log::{debug, info, trace};
 use rand::Rng;
+use yansi::Paint;
 
 use crate::{
     char_set::CharSet,
@@ -250,10 +250,7 @@ where
                     }
                     (Err(err), ErrorHandlingMode::Warn) => {
                         debug!("Error getting extension of {p_ref:?}: {err}. Prompting.");
-                        println!(
-                            "Error getting extension of {}: {err}",
-                            Colour::Red.paint(format!("{p_ref:?}")),
-                        );
+                        println!("Error getting extension of {}: {err}", format!("{p_ref:?}").red());
                         let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
                         trace!("User selected \"{user_response}\"");
 
