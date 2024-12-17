@@ -1,15 +1,12 @@
-use core::fmt;
 use std::{num::ParseIntError, path::PathBuf};
 
 use clap::{Parser, Subcommand, ValueEnum, ValueHint};
 use clap_complete::Shell;
 use clap_verbosity_flag::{Verbosity, WarnLevel};
-use derivative::Derivative;
 
 use crate::char_set::CustomCharSet;
 
-#[derive(Derivative, Clone, Parser)]
-#[derivative(Debug)]
+#[derive(derive_more::Debug, Clone, Parser)]
 #[command(author, version, about)]
 pub struct CliArgs {
     #[command(subcommand)]
@@ -179,7 +176,7 @@ pub struct CliArgs {
     ///
     ///  - Instead of `rng-rename --length 5 -file-1 -file-2`
     ///  - Run `rng-rename --length 5 -- -file-1 -file-2`
-    #[derivative(Debug(format_with = "debug_vec_omit"))]
+    #[debug("/* omitted */")]
     #[arg(
         required = true,
         value_name = "FILES",
@@ -260,14 +257,4 @@ fn parse_batch_size(s: &str) -> Result<usize, ParseIntError> {
         0 => usize::MAX,
         other => other,
     })
-}
-
-fn debug_vec_omit(v: &Vec<impl fmt::Debug>, f: &mut fmt::Formatter) -> Result<(), fmt::Error> {
-    use fmt::Debug;
-    use log::LevelFilter as F;
-
-    match log::max_level() {
-        F::Off | F::Error | F::Warn | F::Info | F::Debug => write!(f, "/* omitted */"),
-        F::Trace => v.fmt(f),
-    }
 }

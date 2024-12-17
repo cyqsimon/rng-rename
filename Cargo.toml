@@ -15,7 +15,7 @@ ansi_term = "0.12.1"
 clap = { version = "4.5.23", features = ["cargo", "derive", "unicode"] }
 clap-verbosity-flag = "3.0.2"
 clap_complete = "4.5.39"
-derivative = "2.2.0"
+derive_more = { version = "1.0.0", features = ["debug"] }
 dialoguer = "0.11.0"
 itertools = "0.13.0"
 log = "0.4.22"
