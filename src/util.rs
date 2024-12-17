@@ -33,10 +33,10 @@ impl fmt::Display for ExtensionMode {
         let repr = match self {
             Self::KeepAll => "KeepAll".into(),
             Self::KeepLast => "KeepLast".into(),
-            Self::Static(ext) => format!("Static(\"{}\")", ext),
+            Self::Static(ext) => format!("Static(\"{ext}\")"),
             Self::Discard => "Discard".into(),
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 
@@ -55,7 +55,7 @@ impl FromStr for OnErrorResponse {
             "s" | "skip" => Self::Skip,
             "r" | "retry" => Self::Retry,
             "h" | "halt" => Self::Halt,
-            other => Err(format!("\"{}\" is not a valid response", other))?,
+            other => Err(format!("\"{other}\" is not a valid response"))?,
         })
     }
 }
@@ -66,7 +66,7 @@ impl fmt::Display for OnErrorResponse {
             Self::Retry => "retry",
             Self::Halt => "halt",
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 

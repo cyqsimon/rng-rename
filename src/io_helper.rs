@@ -37,7 +37,7 @@ impl fmt::Display for DedupError {
             Self::DialoguerError(err) => err.to_string(),
             Self::UserHalt => "user halt".into(),
         };
-        write!(f, "Failed during canonicalise & dedup step: {}", repr)
+        write!(f, "Failed during canonicalise & dedup step: {repr}")
     }
 }
 impl From<DedupError> for String {
@@ -56,28 +56,28 @@ where
     let mut canonicalised = vec![];
 
     for path in files {
+        let path = path.as_ref();
         'retry: loop {
-            let abs_path_res = path.as_ref().canonicalize();
+            let abs_path_res = path.canonicalize();
             match (abs_path_res, err_mode) {
                 (Ok(abs_path), _) => {
-                    trace!("Canonicalised {:?} into {:?}.", path.as_ref(), abs_path);
+                    trace!("Canonicalised {path:?} into {abs_path:?}.");
                     canonicalised.push(abs_path);
                     break 'retry;
                 }
                 (Err(err), ErrorHandlingMode::Ignore) => {
-                    debug!("Error canonicalising path {:?}: {}. Ignoring.", path.as_ref(), err);
+                    debug!("Error canonicalising path {path:?}: {err}. Ignoring.");
                     break 'retry;
                 }
                 (Err(err), ErrorHandlingMode::Warn) => {
-                    debug!("Error canonicalising path {:?}: {}. Prompting.", path.as_ref(), err);
+                    debug!("Error canonicalising path {path:?}: {err}. Prompting.");
 
                     println!(
-                        "Error canonicalising path {}: {}",
-                        Colour::Red.paint(format!("{:?}", path.as_ref())),
-                        err
+                        "Error canonicalising path {}: {err}",
+                        Colour::Red.paint(format!("{path:?}")),
                     );
                     let user_response = error_prompt("What to do with this path?", Some(OnErrorResponse::Skip))?;
-                    trace!("User selected \"{}\"", user_response);
+                    trace!("User selected \"{user_response}\"");
 
                     match user_response {
                         OnErrorResponse::Skip => break 'retry,
@@ -86,7 +86,7 @@ where
                     }
                 }
                 (Err(err), ErrorHandlingMode::Halt) => {
-                    debug!("Error canonicalising path {:?}: {}. Failing.", path.as_ref(), err);
+                    debug!("Error canonicalising path {path:?}: {err}. Failing.");
                     Err(err)?;
                 }
             }
@@ -120,7 +120,7 @@ impl fmt::Display for RenameError {
             Self::DialoguerError(err) => err.to_string(),
             Self::UserHalt => "user halt".into(),
         };
-        write!(f, "Failed during rename step: {}", repr)
+        write!(f, "Failed during rename step: {repr}")
     }
 }
 impl From<RenameError> for String {
@@ -166,24 +166,23 @@ fn rename_files_no_confirm(
             let rename_res = do_rename(path, new_name, dry_run);
             match (rename_res, err_mode) {
                 (Ok(_), _) => {
-                    trace!("Rename from {:?} to {} successful.", path, new_name);
+                    trace!("Rename from {path:?} to {new_name} successful.");
                     success_count += 1;
                     break 'retry;
                 }
                 (Err(err), ErrorHandlingMode::Ignore) => {
-                    debug!("Failed to rename {:?} to {}: {}, ignoring.", path, new_name, err);
+                    debug!("Failed to rename {path:?} to {new_name}: {err}, ignoring.");
                     break 'retry;
                 }
                 (Err(err), ErrorHandlingMode::Warn) => {
-                    debug!("Failed to rename {:?} to {}: {}. Prompting.", path, new_name, err);
+                    debug!("Failed to rename {path:?} to {new_name}: {err}. Prompting.");
                     println!(
-                        "Failed to rename {:?} to {}: {}",
-                        Colour::Red.paint(format!("{:?}", path)),
+                        "Failed to rename {:?} to {}: {err}",
+                        Colour::Red.paint(format!("{path:?}")),
                         Colour::Red.paint(new_name),
-                        err
                     );
                     let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
-                    trace!("User selected \"{}\"", user_response);
+                    trace!("User selected \"{user_response}\"");
 
                     match user_response {
                         OnErrorResponse::Skip => break 'retry,
@@ -192,14 +191,14 @@ fn rename_files_no_confirm(
                     }
                 }
                 (Err(err), ErrorHandlingMode::Halt) => {
-                    debug!("Failed to rename {:?} to {}: {}. Halting.", path, new_name, err);
+                    debug!("Failed to rename {path:?} to {new_name}: {err}. Halting.");
                     Err(err)?;
                 }
             }
         }
     }
 
-    info!("Successfully renamed {} files", success_count);
+    info!("Successfully renamed {success_count} files");
     Ok(success_count)
 }
 
@@ -217,7 +216,7 @@ impl FromStr for BatchConfirmResponse {
             "p" | "proceed" => Self::Proceed,
             "s" | "skip" => Self::Skip,
             "h" | "halt" => Self::Halt,
-            other => Err(format!("\"{}\" is not a valid response", other))?,
+            other => Err(format!("\"{other}\" is not a valid response"))?,
         })
     }
 }
@@ -228,7 +227,7 @@ impl fmt::Display for BatchConfirmResponse {
             Self::Skip => "skip",
             Self::Halt => "halt",
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 
@@ -240,10 +239,10 @@ fn rename_files_confirm(
 ) -> Result<usize, RenameError> {
     let mut success_count = 0;
 
-    debug!("Renaming files with confirmation and batch size of {}.", batch_size);
+    debug!("Renaming files with confirmation and batch size of {batch_size}.");
     let batch_count = ((pairs_list.len() as f64) / (batch_size as f64)).ceil() as usize;
     'batch: for (batch_idx, batch) in pairs_list.chunks(batch_size).enumerate() {
-        trace!("Processing batch {}.", batch_idx);
+        trace!("Processing batch {batch_idx}.");
 
         // confirm batch
         println!(
@@ -266,7 +265,7 @@ fn rename_files_confirm(
                 )
             })
             .join("\n");
-        println!("{}", batch_info_text);
+        println!("{batch_info_text}");
 
         use Colour::Green;
         let prompt_text = format!(
@@ -282,7 +281,7 @@ fn rename_files_confirm(
             .default(BatchConfirmResponse::Proceed)
             .with_prompt(prompt_text)
             .interact()?;
-        trace!("User selected \"{}\"", user_response);
+        trace!("User selected \"{user_response}\"");
 
         match user_response {
             BatchConfirmResponse::Proceed => {} // fall through
@@ -298,24 +297,23 @@ fn rename_files_confirm(
                 let rename_res = do_rename(path, new_name, dry_run);
                 match (rename_res, err_mode) {
                     (Ok(_), _) => {
-                        trace!("Rename from {:?} to {} successful.", path, new_name);
+                        trace!("Rename from {path:?} to {new_name} successful.");
                         success_count += 1;
                         break 'retry;
                     }
                     (Err(err), ErrorHandlingMode::Ignore) => {
-                        debug!("Failed to rename {:?} to {}: {}, ignoring.", path, new_name, err);
+                        debug!("Failed to rename {path:?} to {new_name}: {err}, ignoring.");
                         break 'retry;
                     }
                     (Err(err), ErrorHandlingMode::Warn) => {
-                        debug!("Failed to rename {:?} to {}: {}. Prompting.", path, new_name, err);
+                        debug!("Failed to rename {path:?} to {new_name}: {err}. Prompting.");
                         println!(
-                            "Failed to rename {:?} to {}: {}",
-                            Colour::Red.paint(format!("{:?}", path)),
+                            "Failed to rename {:?} to {}: {err}",
+                            Colour::Red.paint(format!("{path:?}")),
                             Colour::Red.paint(new_name),
-                            err
                         );
                         let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
-                        trace!("User selected \"{}\"", user_response);
+                        trace!("User selected \"{user_response}\"");
 
                         match user_response {
                             OnErrorResponse::Skip => break 'retry,
@@ -324,7 +322,7 @@ fn rename_files_confirm(
                         }
                     }
                     (Err(err), ErrorHandlingMode::Halt) => {
-                        debug!("Failed to rename {:?} to {}: {}. Halting.", path, new_name, err);
+                        debug!("Failed to rename {path:?} to {new_name}: {err}. Halting.");
                         Err(err)?;
                     }
                 }
@@ -332,13 +330,13 @@ fn rename_files_confirm(
         }
     }
 
-    info!("Successfully renamed {} files", success_count);
+    info!("Successfully renamed {success_count} files");
     Ok(success_count)
 }
 
 /// Perform rename on a single file.
 fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
-    trace!("Renaming {:?} to {}. Dry run: {}.", path, new_name, dry_run);
+    trace!("Renaming {path:?} to {new_name}. Dry run: {dry_run}.");
 
     let new_abs_path = {
         let mut new_path = path
@@ -352,21 +350,18 @@ fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
     if new_abs_path.try_exists()? {
         Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
-            format!(
-                "renaming {:?} to {:?} will overwrite an existing file",
-                path, new_abs_path
-            ),
+            format!("renaming {path:?} to {new_abs_path:?} will overwrite an existing file"),
         ))?;
     }
 
     if dry_run {
         println!(
             "\tRename preview: {} -> {}",
-            Colour::Yellow.paint(format!("{:?}", path)),
-            Colour::Green.paint(format!("{:?}", new_abs_path)),
+            Colour::Yellow.paint(format!("{path:?}")),
+            Colour::Green.paint(format!("{new_abs_path:?}")),
         );
     } else {
-        trace!("New full path is {:?}", new_abs_path);
+        trace!("New full path is {new_abs_path:?}");
         fs::rename(path, new_abs_path)?;
     }
 

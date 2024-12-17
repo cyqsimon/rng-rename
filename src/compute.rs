@@ -39,24 +39,17 @@ impl fmt::Display for NameGenerationError {
             Self::InsufficientNamingSpace { needs, space } => {
                 format!(
                     "This combination of character set and length cannot uniquely cover every file.\n\
-                    There are {} files but only {} unique names available.",
-                    needs, space
+                    There are {needs} files but only {space} unique names available."
                 )
             }
             Self::TooManyFiles { count } => {
-                format!(
-                    "Cannot process {} files at once. Currently the limit is {}.",
-                    count, FILE_COUNT_MAX
-                )
+                format!("Cannot process {count} files at once. Currently the limit is {FILE_COUNT_MAX}.")
             }
             Self::TooManyPermutations { char_set, length } => {
-                format!(
-                    "Cannot enumerate all permutations with the character set {} and length {}.",
-                    char_set, length
-                )
+                format!("Cannot enumerate all permutations with the character set {char_set} and length {length}.")
             }
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 
@@ -95,7 +88,7 @@ where
         }
         None => {
             let files_space_ratio = (files.len() as f64) / (naming_spaces_size as f64);
-            trace!("Ratio of files to naming space is {:.2e}.", files_space_ratio);
+            trace!("Ratio of files to naming space is {files_space_ratio:.2e}.");
             if files_space_ratio < STRATEGY_RATIO_THRESHOLD {
                 generate_on_demand(files, chars, length)
             } else {
@@ -130,7 +123,7 @@ fn generate_on_demand(
             }
             // check if name is used
             if name_map.iter().any(|(_, existing_name)| existing_name == &name) {
-                debug!("Random name collision: \"{}\". Retrying.", name);
+                debug!("Random name collision: \"{name}\". Retrying");
             } else {
                 break name;
             }
@@ -139,7 +132,7 @@ fn generate_on_demand(
     }
 
     debug!("Generated {} random names.", files.len());
-    trace!("Pairs: {:?}", name_map);
+    trace!("Pairs: {name_map:?}");
     Ok(name_map)
 }
 
@@ -183,7 +176,7 @@ fn generate_then_match(
     }
 
     debug!("Generated {} random names.", name_map.len());
-    trace!("Pairs: {:?}", name_map);
+    trace!("Pairs: {name_map:?}");
     Ok(name_map)
 }
 
@@ -201,11 +194,11 @@ impl From<dialoguer::Error> for NameFinaliseError {
 impl fmt::Display for NameFinaliseError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let repr = match self {
-            Self::NotUtf8 { path } => format!("{:?} is not UTF8", path),
+            Self::NotUtf8 { path } => format!("{path:?} is not UTF8"),
             Self::DialoguerError(err) => err.to_string(),
             Self::UserHalt => "user halt".into(),
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 impl From<NameFinaliseError> for String {
@@ -242,27 +235,27 @@ where
     } else {
         debug!("Appending extensions to generated file names.");
         for (path, random_name) in file_random_name_pairs {
+            let p_ref = path.as_ref();
             'retry: loop {
-                let ext_res = get_extension(&path, &extension_mode);
+                let ext_res = get_extension(p_ref, &extension_mode);
                 match (ext_res, err_mode) {
                     (Ok(ext), _) => {
-                        trace!("The new extension for {:?} is {:?}", path.as_ref(), ext);
+                        trace!("The new extension for {p_ref:?} is {ext:?}");
                         pairs_with_ext.push((path, random_name, ext));
                         break 'retry;
                     }
                     (Err(err), ErrorHandlingMode::Ignore) => {
-                        debug!("Error getting extension of {:?}: {}. Ignoring.", path.as_ref(), err);
+                        debug!("Error getting extension of {p_ref:?}: {err}. Ignoring.");
                         break 'retry;
                     }
                     (Err(err), ErrorHandlingMode::Warn) => {
-                        debug!("Error getting extension of {:?}: {}. Prompting.", path.as_ref(), err);
+                        debug!("Error getting extension of {p_ref:?}: {err}. Prompting.");
                         println!(
-                            "Error getting extension of {}: {}",
-                            Colour::Red.paint(format!("{:?}", path.as_ref())),
-                            err
+                            "Error getting extension of {}: {err}",
+                            Colour::Red.paint(format!("{p_ref:?}")),
                         );
                         let user_response = error_prompt("What to do with this file?", Some(OnErrorResponse::Skip))?;
-                        trace!("User selected \"{}\"", user_response);
+                        trace!("User selected \"{user_response}\"");
 
                         match user_response {
                             OnErrorResponse::Skip => break 'retry,
@@ -271,7 +264,7 @@ where
                         }
                     }
                     (Err(err), ErrorHandlingMode::Halt) => {
-                        debug!("Error getting extension of {:?}: {}. Halting.", path.as_ref(), err);
+                        debug!("Error getting extension of {p_ref:?}: {err}. Halting.");
                         Err(err)?;
                     }
                 }
@@ -282,9 +275,10 @@ where
     // append prefix
     if let Some(prefix_str) = prefix {
         debug!("Appending prefix to generated file names.");
+        let p = prefix_str.as_ref();
         pairs_with_ext
             .iter_mut()
-            .for_each(|(_, name, _)| *name = format!("{}{}", prefix_str.as_ref(), name));
+            .for_each(|(_, name, _)| *name = format!("{p}{name}"));
     } else {
         trace!("No prefix to append.")
     }
@@ -305,7 +299,7 @@ where
         .into_iter()
         .map(|(path, name, ext)| {
             let name_combined = if let Some(ext) = ext {
-                format!("{}.{}", name, ext)
+                format!("{name}.{ext}")
             } else {
                 name
             };
@@ -327,7 +321,7 @@ where
         .collect_vec();
 
     debug!("Finalised names for {} files.", finalised_pairs.len());
-    trace!("Pairs: {:?}", finalised_pairs);
+    trace!("Pairs: {finalised_pairs:?}");
     Ok(finalised_pairs)
 }
 

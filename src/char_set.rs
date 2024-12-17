@@ -52,20 +52,20 @@ impl Error for ParseCustomCharSetError {}
 impl fmt::Display for ParseCustomCharSetError {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         fn chars_to_string(chars: &[char]) -> String {
-            chars.iter().map(|c| format!("\'{}\'", c)).join(", ")
+            chars.iter().map(|c| format!("\'{c}\'")).join(", ")
         }
 
         let repr = match self {
-            Self::IllegalChars(chars) => format!(
-                "the custom character set contains illegal characters: {}",
-                chars_to_string(chars)
-            ),
-            Self::DuplicateChars(chars) => format!(
-                "the custom character set contains duplicate characters: {}",
-                chars_to_string(chars)
-            ),
+            Self::IllegalChars(chars) => {
+                let chars = chars_to_string(chars);
+                format!("the custom character set contains illegal characters: {chars}")
+            }
+            Self::DuplicateChars(chars) => {
+                let chars = chars_to_string(chars);
+                format!("the custom character set contains duplicate characters: {chars}")
+            }
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 
@@ -116,7 +116,8 @@ impl FromStr for CustomCharSet {
 }
 impl fmt::Display for CustomCharSet {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.chars.iter().collect::<String>())
+        let chars = self.chars.iter().collect::<String>();
+        write!(f, "{chars}")
     }
 }
 
@@ -161,8 +162,7 @@ impl TryFrom<(CharSetSelection, Option<CustomCharSet>, Option<Casing>)> for Char
             (S::Base64, None, None) => Ok(Self::Base64),
             // incompatible `--char-set` and `--case` values
             (char_set_selection, _, Some(case)) => Err(format!(
-                "the character set {:?} is incompatible with the case {:?}",
-                char_set_selection, case
+                "the character set {char_set_selection:?} is incompatible with the case {case:?}"
             )),
         }
     }
@@ -187,9 +187,9 @@ impl fmt::Display for CharSet {
             Self::Base16Lower => "[0-9a-f]".into(),
             Self::Base16Upper => "[0-9A-F]".into(),
             Self::Base64 => "[A-Za-z0-9-_]".into(),
-            Self::Custom(chars) => format!("Custom(\"{}\")", chars),
+            Self::Custom(chars) => format!("Custom(\"{chars}\")"),
         };
-        write!(f, "{}", repr)
+        write!(f, "{repr}")
     }
 }
 impl CharSet {
