@@ -7,8 +7,6 @@ mod compute;
 mod io_helper;
 mod util;
 
-use std::process;
-
 use clap::{crate_name, CommandFactory, Parser};
 use compute::generate_random_names;
 use log::debug;
@@ -20,17 +18,7 @@ use crate::{
     io_helper::{dedup_paths, rename_files},
 };
 
-fn main() {
-    match main_impl() {
-        Ok(_) => {}
-        Err(err) => {
-            println!("{err}");
-            process::exit(1)
-        }
-    };
-}
-
-fn main_impl() -> Result<(), String> {
+fn main() -> Result<(), String> {
     // set conditional colourisation
     yansi::whenever(yansi::Condition::TTY_AND_COLOR);
 
