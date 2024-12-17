@@ -57,6 +57,3 @@ If you would like to help with this task, you can force the strategy using the o
  - `crate::compute::get_extension`
    - Awaiting implementation and stabilisation of `Path::file_suffix`
    - See https://github.com/rust-lang/rust/issues/86319#issuecomment-996152668
- - `crate::io_helper::do_rename`
-   - Awaiting stabilisation of `Path::try_exists`
-   - See https://github.com/rust-lang/rust/issues/83186

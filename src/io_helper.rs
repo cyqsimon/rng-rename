@@ -349,8 +349,7 @@ fn do_rename(path: &Path, new_name: &str, dry_run: bool) -> io::Result<()> {
         new_path
     };
 
-    // TODO: see `Errata.md`
-    if new_abs_path.exists() {
+    if new_abs_path.try_exists()? {
         Err(io::Error::new(
             io::ErrorKind::AlreadyExists,
             format!(
